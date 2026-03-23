@@ -13,7 +13,7 @@ spring:
             - id: user-service-route
               uri: http://localhost:8081
               predicates:
-                - Path=/api/users/**
+                - Path=/api/v1/users/**
 
 eureka:
   client:

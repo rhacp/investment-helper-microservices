@@ -1,5 +1,8 @@
 package com.anghel.investmenthelper.auth.util.enumeration;
 
+import lombok.Getter;
+
+@Getter
 public enum Role {
 
     ROLE_ADMIN("ROLE_ADMIN"),

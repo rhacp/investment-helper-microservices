@@ -1,13 +1,12 @@
 package com.anghel.investmenthelper.user.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDTO {
@@ -18,15 +17,11 @@ public class UserDTO {
 
     private String lastName;
 
-    private String email;
-
-    private String passwordHash;
-
-    private LocalDate creationDate;
-
-    private LocalTime creationTime;
-
     private LocalDate dateOfBirth;
 
-    private String role;
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private Long authUserId;
 }

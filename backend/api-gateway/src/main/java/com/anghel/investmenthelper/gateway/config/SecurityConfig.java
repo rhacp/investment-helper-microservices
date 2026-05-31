@@ -24,6 +24,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeExchange(exchange -> exchange
+                        .pathMatchers("/api/v1/internal/**")
+                        .denyAll()
                         .pathMatchers(
                                 "/api/v1/auth/**",
                                 "/actuator/**"

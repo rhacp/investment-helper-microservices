@@ -1,5 +1,6 @@
 package com.anghel.investmenthelper.auth.service;
 
+import com.anghel.investmenthelper.auth.client.UserServiceClient;
 import com.anghel.investmenthelper.auth.exception.ResourceMismatchException;
 import com.anghel.investmenthelper.auth.model.dto.*;
 import com.anghel.investmenthelper.auth.model.entity.AuthUser;
@@ -30,7 +31,9 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public AuthUserServiceImpl(AuthUserRepository authUserRepository, AuthUserServiceValidator authUserServiceValidator, AuthUserQueryService authUserQueryService, JwtService jwtService, JwtProperties jwtProperties, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    private final UserServiceClient userServiceClient;
+
+    public AuthUserServiceImpl(AuthUserRepository authUserRepository, AuthUserServiceValidator authUserServiceValidator, AuthUserQueryService authUserQueryService, JwtService jwtService, JwtProperties jwtProperties, ModelMapper modelMapper, PasswordEncoder passwordEncoder, UserServiceClient userServiceClient) {
         this.authUserRepository = authUserRepository;
         this.authUserServiceValidator = authUserServiceValidator;
         this.authUserQueryService = authUserQueryService;
@@ -38,6 +41,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         this.jwtProperties = jwtProperties;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
+        this.userServiceClient = userServiceClient;
     }
 
     @Transactional
@@ -51,7 +55,16 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setEnabled(true);
 
         AuthUser savedAuthUser = authUserRepository.save(authUser);
-        log.info("User created [id={}, email={}]", savedAuthUser.getId(), savedAuthUser.getEmail());
+
+        try {
+            CreateUserRequestDTO createUserRequestDTO = modelMapper.map(registerRequestDTO, CreateUserRequestDTO.class);
+            createUserRequestDTO.setAuthUserId(savedAuthUser.getId());
+            userServiceClient.createUser(createUserRequestDTO);
+        } catch (Exception e) {
+            authUserRepository.deleteById(savedAuthUser.getId());
+        }
+
+        log.info("User registration completed [id={}, email={}]", savedAuthUser.getId(), savedAuthUser.getEmail());
 
         return modelMapper.map(savedAuthUser, RegisterResponseDTO.class);
     }

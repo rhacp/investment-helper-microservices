@@ -12,16 +12,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterRequestDTO {
-
-    @Email
-    @NotBlank
-    @Size(max = 255, message = "Must have maximum 255 characters")
-    private String email;
-
-    @NotBlank
-    @Size(min = 6, max = 128, message = "Must be between 6 and 128 characters")
-    private String password;
+public class CreateUserRequestDTO {
 
     @NotBlank(message = "First name is required")
     @Size(min = 3, max = 30, message = "Must be between 3 and 30 characters")
@@ -42,4 +33,7 @@ public class RegisterRequestDTO {
     @NotNull(message = "Date of birth is required")
     @Past
     private LocalDate dateOfBirth;
+
+    @NotNull(message = "UserAuth id is required")
+    private Long authUserId;
 }

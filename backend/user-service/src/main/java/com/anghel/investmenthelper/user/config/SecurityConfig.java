@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**")
+                        .requestMatchers("/actuator/**", "/api/v1/internal/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated()

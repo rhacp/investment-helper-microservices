@@ -1,0 +1,29 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: prediction-service
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+
+jwt:
+  issuer: ${JWT_ISSUER:investment-helper-auth-service}
+  public-key-path: ${JWT_PUBLIC_KEY_PATH:classpath:keys/public.pem}
+
+prediction:
+  training-years: ${PREDICTION_TRAINING_YEARS:2}
+  minimum-training-records: ${PREDICTION_MINIMUM_RECORDS:200}

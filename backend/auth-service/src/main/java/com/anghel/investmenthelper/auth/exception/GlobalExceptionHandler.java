@@ -1,6 +1,7 @@
 package com.anghel.investmenthelper.auth.exception;
 
 import com.anghel.investmenthelper.auth.model.dto.ErrorDTO;
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
     public ResponseEntity<ErrorDTO> handleAccessDenied(Exception exception, HttpServletRequest request) {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler({FeignException.class})
+    public ResponseEntity<ErrorDTO> handleFeignException(FeignException exception, HttpServletRequest request) {
+        return buildErrorResponse("Required service is currently unabailable", null, request.getRequestURI(), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(Exception.class)

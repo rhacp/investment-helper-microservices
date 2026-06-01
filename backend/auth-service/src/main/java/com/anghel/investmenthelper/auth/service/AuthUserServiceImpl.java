@@ -3,10 +3,12 @@ package com.anghel.investmenthelper.auth.service;
 import com.anghel.investmenthelper.auth.client.UserServiceClient;
 import com.anghel.investmenthelper.auth.exception.ResourceMismatchException;
 import com.anghel.investmenthelper.auth.model.dto.*;
+import com.anghel.investmenthelper.auth.model.dto.CreateUserRequestDTO;
 import com.anghel.investmenthelper.auth.model.entity.AuthUser;
 import com.anghel.investmenthelper.auth.repository.AuthUserRepository;
 import com.anghel.investmenthelper.auth.util.enumeration.Role;
 import com.anghel.investmenthelper.auth.util.property.JwtProperties;
+import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -44,7 +46,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         this.userServiceClient = userServiceClient;
     }
 
-    @Transactional
     @Override
     public RegisterResponseDTO register(RegisterRequestDTO registerRequestDTO) {
         authUserServiceValidator.checkIfAuthUserExists(registerRequestDTO);
@@ -55,18 +56,31 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setEnabled(true);
 
         AuthUser savedAuthUser = authUserRepository.save(authUser);
+        UserDTO receivedUser;
 
         try {
             CreateUserRequestDTO createUserRequestDTO = modelMapper.map(registerRequestDTO, CreateUserRequestDTO.class);
             createUserRequestDTO.setAuthUserId(savedAuthUser.getId());
-            userServiceClient.createUser(createUserRequestDTO);
-        } catch (Exception e) {
+            receivedUser = userServiceClient.createUser(createUserRequestDTO);
+        } catch (FeignException exception) {
+            log.error(
+                    "Failed to create user profile. Rolling back AuthUser [id={}]",
+                    savedAuthUser.getId(),
+                    exception
+            );
+
             authUserRepository.deleteById(savedAuthUser.getId());
+            throw exception;
         }
 
         log.info("User registration completed [id={}, email={}]", savedAuthUser.getId(), savedAuthUser.getEmail());
 
-        return modelMapper.map(savedAuthUser, RegisterResponseDTO.class);
+        RegisterResponseDTO response = modelMapper.map(savedAuthUser, RegisterResponseDTO.class);
+        response.setDateOfBirth(receivedUser.getDateOfBirth());
+        response.setFirstName(receivedUser.getFirstName());
+        response.setLastName(receivedUser.getLastName());
+
+        return response;
     }
 
     @Override

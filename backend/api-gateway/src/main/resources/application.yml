@@ -10,15 +10,36 @@ spring:
       server:
         webflux:
           routes:
+
             - id: user-service-route
-              uri: http://localhost:8081
+              uri: lb://user-service
               predicates:
                 - Path=/api/v1/users/**
 
             - id: auth-service-route
-              uri: http://localhost:8082
+              uri: lb://auth-service
               predicates:
                 - Path=/api/v1/auth/**
+
+            - id: portfolio-service-route
+              uri: lb://portfolio-service
+              predicates:
+                - Path=/api/v1/portfolios/**
+
+            - id: market-data-service-route
+              uri: lb://market-data-service
+              predicates:
+                - Path=/api/v1/stocks/**
+
+            - id: prediction-service-route
+              uri: lb://prediction-service
+              predicates:
+                - Path=/api/v1/predictions/**
+
+            - id: analytics-service-route
+              uri: lb://analytics-service
+              predicates:
+                - Path=/api/v1/analytics/**
 
 eureka:
   client:

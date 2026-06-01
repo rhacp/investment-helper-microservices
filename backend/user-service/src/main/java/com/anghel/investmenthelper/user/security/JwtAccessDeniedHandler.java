@@ -2,7 +2,6 @@ package com.anghel.investmenthelper.user.security;
 
 import com.anghel.investmenthelper.user.model.dto.ErrorDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

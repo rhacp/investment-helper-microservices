@@ -46,6 +46,18 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ErrorDTO> handleResourceAlreadyExistsException(ResourceAlreadyExistsException exception, HttpServletRequest request){
+        log.warn("Resource already exists: {}", exception.getMessage());
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorDTO> handleResourceNotFoundException(ResourceNotFoundException exception, HttpServletRequest request){
+        log.warn("Resource not found: {}", exception.getMessage());
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDTO> handleException(Exception exception, HttpServletRequest request){
         log.error("Unexpected error [path={}, message={}]",

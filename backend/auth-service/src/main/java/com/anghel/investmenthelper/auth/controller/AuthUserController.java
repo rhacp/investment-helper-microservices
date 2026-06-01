@@ -1,7 +1,7 @@
 package com.anghel.investmenthelper.auth.controller;
 
-import com.anghel.investmenthelper.auth.model.dto.*;
-import com.anghel.investmenthelper.auth.service.AuthUserService;
+import com.anghel.investmenthelper.auth.model.dto.auth_user.*;
+import com.anghel.investmenthelper.auth.service.auth_user.AuthUserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,9 +1,9 @@
 package com.anghel.investmenthelper.user.controller;
 
-import com.anghel.investmenthelper.user.model.dto.UserDTO;
-import com.anghel.investmenthelper.user.model.dto.UserInputDTO;
-import com.anghel.investmenthelper.user.model.dto.UserUpdateDTO;
-import com.anghel.investmenthelper.user.service.UserService;
+import com.anghel.investmenthelper.user.model.dto.user.UserDTO;
+import com.anghel.investmenthelper.user.model.dto.user.UserInputDTO;
+import com.anghel.investmenthelper.user.model.dto.user.UserUpdateDTO;
+import com.anghel.investmenthelper.user.service.user.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

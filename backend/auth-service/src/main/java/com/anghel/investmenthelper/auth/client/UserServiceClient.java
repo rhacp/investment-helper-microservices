@@ -1,6 +1,6 @@
 package com.anghel.investmenthelper.auth.client;
 
-import com.anghel.investmenthelper.auth.model.dto.CreateUserRequestDTO;
+import com.anghel.investmenthelper.auth.model.dto.auth_user.CreateUserRequestDTO;
 import com.anghel.investmenthelper.auth.model.dto.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;

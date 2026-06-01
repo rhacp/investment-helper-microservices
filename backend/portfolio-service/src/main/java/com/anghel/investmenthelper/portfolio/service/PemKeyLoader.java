@@ -1,6 +1,6 @@
-package com.anghel.investmenthelper.prediction.service;
+package com.anghel.investmenthelper.portfolio.service;
 
-import com.anghel.investmenthelper.prediction.util.property.JwtProperties;
+import com.anghel.investmenthelper.portfolio.util.property.JwtProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -70,3 +70,4 @@ public class PemKeyLoader implements KeyLoader {
         );
     }
 }
+

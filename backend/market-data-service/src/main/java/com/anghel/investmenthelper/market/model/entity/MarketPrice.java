@@ -14,7 +14,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "market_prices")
+@Table(name = "market_prices", uniqueConstraints = {@UniqueConstraint(
+        name = "uk_market_price_stock_date",
+        columnNames = {"stock_id", "price_date"})
+})
 public class MarketPrice {
 
     @Id

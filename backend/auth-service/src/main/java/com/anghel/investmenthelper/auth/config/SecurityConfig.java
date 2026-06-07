@@ -4,12 +4,15 @@ import com.anghel.investmenthelper.auth.security.JwtAuthenticationEntryPoint;
 import com.anghel.investmenthelper.auth.service.jwt.KeyLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,7 +25,7 @@ import java.security.interfaces.RSAPublicKey;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
@@ -36,11 +39,15 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",
-                                "/actuator/**"
+                                "/actuator/**",
+                                "/api/v1/internal/**"
                         )
                         .permitAll()
                         .anyRequest()
                         .authenticated()
+                )
+                .oauth2ResourceServer(oauth ->
+                        oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                 );
 
         return http.build();

@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1")
 public class AuthUserController {
 
     private final AuthUserService authUserService;
@@ -18,19 +18,25 @@ public class AuthUserController {
         this.authUserService = authUserService;
     }
 
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authUserService.register(registerRequestDTO));
     }
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         return ResponseEntity.ok(authUserService.login(loginRequestDTO));
     }
 
-    @PatchMapping("/users/{id}/role")
+    @PatchMapping("/auth/users/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AuthUserResponseDTO> updateRole(@PathVariable Long id, @Valid @RequestBody RoleDTO roleDTO) {
         return ResponseEntity.ok(authUserService.updateUserRole(id, roleDTO));
+    }
+
+    @PatchMapping("/internal/auth-users/{authUserId}/disable")
+    public ResponseEntity<Void> disableAuthUser(@PathVariable Long authUserId) {
+        authUserService.disableAuthUser(authUserId);
+        return ResponseEntity.noContent().build();
     }
 }

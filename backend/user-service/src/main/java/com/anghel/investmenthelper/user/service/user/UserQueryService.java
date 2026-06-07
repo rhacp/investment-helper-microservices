@@ -4,7 +4,5 @@ import com.anghel.investmenthelper.user.model.entity.User;
 
 public interface UserQueryService {
 
-//    User getValidUser(Long id);
-
     User getValidUserByAuthUserId(Long authUserId);
 }

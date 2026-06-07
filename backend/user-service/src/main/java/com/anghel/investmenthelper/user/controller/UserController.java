@@ -30,7 +30,7 @@ public class UserController {
     @GetMapping("/users/{authUserId}")
     @PreAuthorize("@userAuthorizationService.canAccessUser(#authUserId, authentication)")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long authUserId) {
-        return ResponseEntity.ok(userService.getUserById(authUserId));
+        return ResponseEntity.ok(userService.getUserByAuthUserId(authUserId));
     }
 
     @GetMapping("/users")
@@ -39,16 +39,18 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @DeleteMapping("/users//{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUserById(id);
+    @DeleteMapping("/users/{authUserId}")
+    @PreAuthorize(
+            "@userAuthorizationService.canAccessUser(#authUserId, authentication)"
+    )
+    public ResponseEntity<Void> deleteUser(@PathVariable Long authUserId) {
+        userService.deactivateUserByAuthUserId(authUserId);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/users/{id}")
-    @PreAuthorize("@userAuthorizationService.canAccessUser(#id, authentication)")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
-        return ResponseEntity.ok(userService.updateUserById(userUpdateDTO, id));
+    @PatchMapping("/users/{authUserId}")
+    @PreAuthorize("@userAuthorizationService.canAccessUser(#authUserId, authentication)")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long authUserId, @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        return ResponseEntity.ok(userService.updateUserByAuthUserId(userUpdateDTO, authUserId));
     }
 }

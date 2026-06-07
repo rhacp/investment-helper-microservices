@@ -9,4 +9,6 @@ public interface AuthUserService {
     LoginResponseDTO login(LoginRequestDTO loginRequestDTO);
 
     AuthUserResponseDTO updateUserRole(Long id, RoleDTO roleDTO);
+
+    void disableAuthUser(Long authUserId);
 }

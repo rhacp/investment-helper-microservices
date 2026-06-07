@@ -36,8 +36,12 @@ public class User {
     @Column(name = "auth_user_id", nullable = false, unique = true)
     private Long authUserId;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
     @PrePersist
     public void prePersist(){
+        this.active = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

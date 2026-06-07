@@ -1,5 +1,6 @@
 package com.anghel.investmenthelper.user.service.user;
 
+import com.anghel.investmenthelper.user.client.AuthServiceClient;
 import com.anghel.investmenthelper.user.model.dto.user.UserDTO;
 import com.anghel.investmenthelper.user.model.dto.user.UserInputDTO;
 import com.anghel.investmenthelper.user.model.dto.user.UserUpdateDTO;
@@ -22,10 +23,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserQueryService userQueryService;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserQueryService userQueryService) {
+    private final AuthServiceClient authServiceClient;
+
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserQueryService userQueryService, AuthServiceClient authServiceClient) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.userQueryService = userQueryService;
+        this.authServiceClient = authServiceClient;
     }
 
     @Transactional
@@ -52,7 +56,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getUserById(Long authUserId) {
+    public UserDTO getUserByAuthUserId(Long authUserId) {
         User user = userQueryService.getValidUserByAuthUserId(authUserId);
         log.debug("User retrieved [id={}]", authUserId);
 
@@ -61,15 +65,18 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void deleteUserById(Long authUserId) {
-        userQueryService.getValidUserByAuthUserId(authUserId);
-        userRepository.deleteById(authUserId);
-        log.info("User deleted [id={}]", authUserId);
+    public void deactivateUserByAuthUserId(Long authUserId) {
+        User user = userQueryService.getValidUserByAuthUserId(authUserId);
+
+        authServiceClient.disableAuthUser(authUserId);
+        user.setActive(false);
+
+        log.info("User deactivated [id={}]", authUserId);
     }
 
     @Transactional
     @Override
-    public UserDTO updateUserById(UserUpdateDTO userUpdateDTO, Long authUserId) {
+    public UserDTO updateUserByAuthUserId(UserUpdateDTO userUpdateDTO, Long authUserId) {
         User user = userQueryService.getValidUserByAuthUserId(authUserId);
 
         updateUserFromDTO(user, userUpdateDTO);

@@ -10,7 +10,7 @@ import com.anghel.investmenthelper.auth.service.jwt.JwtService;
 import com.anghel.investmenthelper.auth.util.enumeration.Role;
 import com.anghel.investmenthelper.auth.util.property.JwtProperties;
 import feign.FeignException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -87,7 +87,7 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         AuthUser authUser = authUserQueryService.getValidAuthUser(loginRequestDTO.getEmail());
-        log.debug("User retrieved [email={}]", authUser.getEmail());
+        log.debug("AuthUser retrieved [email={}]", authUser.getEmail());
 
         authUserServiceValidator.checkIfAuthUserEnabled(authUser);
         checkIfPasswordCorrect(loginRequestDTO.getPassword(), authUser.getPasswordHash());
@@ -106,13 +106,26 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public AuthUserResponseDTO updateUserRole(Long id, RoleDTO roleDTO) {
         AuthUser authUser = authUserQueryService.getValidAuthUser(id);
-        log.debug("User retrieved [id={}]", authUser.getId());
+        log.debug("AuthUser retrieved [id={}]", authUser.getId());
+
+        authUserServiceValidator.checkIfAuthUserEnabled(authUser);
 
         authUser.setRole(getRole(roleDTO.getRole()));
         AuthUser savedAuthUser = authUserRepository.save(authUser);
-        log.info("User updated [id={}, email={}]", savedAuthUser.getId(), savedAuthUser.getEmail());
+        log.info("AuthUser updated [id={}, email={}]", savedAuthUser.getId(), savedAuthUser.getEmail());
 
         return modelMapper.map(savedAuthUser, AuthUserResponseDTO.class);
+    }
+
+    @Transactional
+    @Override
+    public void disableAuthUser(Long authUserId) {
+        AuthUser authUser = authUserQueryService.getValidAuthUser(authUserId);
+        log.debug("AuthUser retrieved [id={}]", authUser.getId());
+
+        authUser.setEnabled(false);
+        AuthUser savedAuthUser = authUserRepository.save(authUser);
+        log.info("AuthUser disabled [id={}]", savedAuthUser.getId());
     }
 
     private void checkIfPasswordCorrect(String receivedPasswordHash, String existingPasswordHash) {

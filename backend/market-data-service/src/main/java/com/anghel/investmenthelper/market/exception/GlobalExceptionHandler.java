@@ -46,6 +46,23 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorDTO> handleResourceNotFoundException(ResourceNotFoundException exception, HttpServletRequest request){
+        log.warn("Resource not found: {}", exception.getMessage());
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.NOT_FOUND);
+    }
+
+//    @ExceptionHandler(IllegalArgumentException.class)
+//    public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException exception, HttpServletRequest request){
+//        log.warn("Argument not found: {}", exception.getMessage());
+//        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.BAD_REQUEST);
+//    }
+
+    @ExceptionHandler(YahooFinanceException.class)
+    public ResponseEntity<ErrorDTO> handleYahooFinanceException(YahooFinanceException exception, HttpServletRequest request){
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.BAD_GATEWAY);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDTO> handleException(Exception exception, HttpServletRequest request){
         log.error("Unexpected error [path={}, message={}]",

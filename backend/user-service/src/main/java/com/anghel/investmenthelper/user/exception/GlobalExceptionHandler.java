@@ -53,6 +53,12 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ResourceInactiveException.class)
+    public ResponseEntity<ErrorDTO> handleResourceInactiveException(ResourceInactiveException exception, HttpServletRequest request){
+        log.warn("Resource inactive: {}", exception.getMessage());
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
     public ResponseEntity<ErrorDTO> handleAccessDenied(Exception exception, HttpServletRequest request) {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.FORBIDDEN);

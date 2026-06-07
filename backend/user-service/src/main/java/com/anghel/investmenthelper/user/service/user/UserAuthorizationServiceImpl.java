@@ -17,7 +17,7 @@ public class UserAuthorizationServiceImpl implements UserAuthorizationService {
     }
 
     @Override
-    public boolean canAccessUser(Long userId, Authentication authentication) {
+    public boolean canAccessUser(Long receivedAuthUserId, Authentication authentication) {
         log.debug("Authorities={}", authentication.getAuthorities());
         if (authentication.getAuthorities()
                 .stream()
@@ -28,13 +28,13 @@ public class UserAuthorizationServiceImpl implements UserAuthorizationService {
 
         JwtAuthenticationToken jwt = (JwtAuthenticationToken) authentication;
         Long authUserId = Long.parseLong(jwt.getToken().getSubject());
-        User user = userQueryService.getValidUserByAuthUserId(authUserId);
+        User user = userQueryService.getValidUserByAuthUserId(receivedAuthUserId);
 
         boolean allowed = user.getAuthUserId().equals(authUserId);
         if (!allowed) {
             log.warn(
                     "Unauthorized profile access attempt [requestedUserId={}, authUserId={}]",
-                    userId,
+                    receivedAuthUserId,
                     authUserId
             );
         }

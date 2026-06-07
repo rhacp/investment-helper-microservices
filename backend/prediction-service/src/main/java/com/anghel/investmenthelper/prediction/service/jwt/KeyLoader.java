@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.prediction.service;
+package com.anghel.investmenthelper.prediction.service.jwt;
 
 import java.security.interfaces.RSAPublicKey;
 

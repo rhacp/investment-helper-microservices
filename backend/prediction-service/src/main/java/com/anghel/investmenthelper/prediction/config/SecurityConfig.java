@@ -2,7 +2,7 @@ package com.anghel.investmenthelper.prediction.config;
 
 import com.anghel.investmenthelper.prediction.security.JwtAccessDeniedHandler;
 import com.anghel.investmenthelper.prediction.security.JwtAuthenticationEntryPoint;
-import com.anghel.investmenthelper.prediction.service.KeyLoader;
+import com.anghel.investmenthelper.prediction.service.jwt.KeyLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;

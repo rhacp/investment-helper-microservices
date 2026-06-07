@@ -1,9 +1,9 @@
 package com.anghel.investmenthelper.market.controller;
 
-import com.anghel.investmenthelper.market.model.dto.MarketPriceInternalResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.MarketPriceResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.StockResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.SyncStockRequestDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.SyncStockRequestDTO;
 import com.anghel.investmenthelper.market.service.stock.StockService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -43,5 +43,10 @@ public class StockController {
     @GetMapping("/internal/stocks/{ticker}/price")
     public ResponseEntity<MarketPriceInternalResponseDTO> getMarketPriceByTicker(@PathVariable String ticker) {
         return ResponseEntity.ok(stockService.getMarketPriceByTicker(ticker));
+    }
+
+    @GetMapping("/internal/stocks/{ticker}/history")
+    public ResponseEntity<List<MarketPriceResponseDTO>> getHistoryByTickerInternal(@PathVariable String ticker) {
+        return ResponseEntity.ok(stockService.getHistoryByTicker(ticker));
     }
 }

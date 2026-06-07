@@ -1,12 +1,12 @@
 package com.anghel.investmenthelper.market.service.stock;
 
-import com.anghel.investmenthelper.market.model.dto.MarketPriceInternalResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.MarketPriceResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.StockResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.SyncStockRequestDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.SyncStockRequestDTO;
 import com.anghel.investmenthelper.market.model.entity.Stock;
 import com.anghel.investmenthelper.market.repository.StockRepository;
-import com.anghel.investmenthelper.market.service.market_data.MarketPriceService;
+import com.anghel.investmenthelper.market.service.market_price.MarketPriceService;
 import com.anghel.investmenthelper.market.service.yahoo.YahooFinanceClient;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +59,7 @@ public class StockServiceImpl implements StockService {
                 savedStock.getId(),
                 savedStock.getTicker());
 
-        marketPriceService.createMarketPriceList(savedStock);
+        marketPriceService.syncMarketPrices(savedStock);
 
         return modelMapper.map(savedStock, StockResponseDTO.class);
     }
@@ -86,6 +86,29 @@ public class StockServiceImpl implements StockService {
         log.debug("Stock retrieved [ticker={}]", ticker);
 
         return marketPriceService.getMarketPriceByStock(stock);
+    }
+
+    @Override
+    public void syncAllStocks() {
+        List<Stock> stockList = stockRepository.findAll();
+        int successful = 0;
+        int failed = 0;
+
+        for (Stock stock : stockList) {
+            try {
+                marketPriceService.syncMarketPrices(stock);
+                successful++;
+            } catch (Exception e) {
+                log.error("Failed to daily sync stock [ticker={}]", stock.getTicker(), e);
+                failed++;
+            }
+        }
+
+        log.info(
+                "Daily stock synchronization result [successful={}, failed={}]",
+                successful,
+                failed
+        );
     }
 
     private static void updateStockFromYahoo(Stock stock, yahoofinance.Stock yahooStock) {

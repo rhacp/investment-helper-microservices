@@ -1,9 +1,9 @@
 package com.anghel.investmenthelper.market.service.stock;
 
-import com.anghel.investmenthelper.market.model.dto.MarketPriceInternalResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.MarketPriceResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.StockResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.SyncStockRequestDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.SyncStockRequestDTO;
 
 import java.util.List;
 
@@ -16,4 +16,6 @@ public interface StockService {
     List<MarketPriceResponseDTO> getHistoryByTicker(String ticker);
 
     MarketPriceInternalResponseDTO getMarketPriceByTicker(String ticker);
+
+    void syncAllStocks();
 }

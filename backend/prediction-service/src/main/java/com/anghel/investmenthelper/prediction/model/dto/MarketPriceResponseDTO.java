@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.market.model.dto;
+package com.anghel.investmenthelper.prediction.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class MarketPriceResponseDTO {
 
-    private LocalDate date;
+    private LocalDate priceDate;
 
     private BigDecimal openPrice;
 

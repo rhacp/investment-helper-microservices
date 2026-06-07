@@ -1,8 +1,8 @@
-package com.anghel.investmenthelper.market.service.market_data;
+package com.anghel.investmenthelper.market.service.market_price;
 
 import com.anghel.investmenthelper.market.exception.ResourceNotFoundException;
-import com.anghel.investmenthelper.market.model.dto.MarketPriceInternalResponseDTO;
-import com.anghel.investmenthelper.market.model.dto.MarketPriceResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.market.model.entity.MarketPrice;
 import com.anghel.investmenthelper.market.model.entity.Stock;
 import com.anghel.investmenthelper.market.repository.MarketPriceRepository;
@@ -16,6 +16,7 @@ import yahoofinance.histquotes.HistoricalQuote;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -35,9 +36,18 @@ public class MarketPriceServiceImpl implements MarketPriceService {
 
     @Transactional
     @Override
-    public void createMarketPriceList(Stock stock) {
+    public void syncMarketPrices(Stock stock) {
+        LocalDate lastDate = marketPriceRepository.findLatestPriceDate(stock);
+        LocalDate startDate = lastDate == null ? LocalDate.now().minusYears(2) : lastDate.plusDays(1);
+
+        if (startDate.isAfter(LocalDate.now())) {
+            log.debug("No synchronization required [ticker={}]", stock.getTicker());
+            return;
+        }
+
         List<HistoricalQuote> historicalQuoteList = yahooFinanceClient.getHistory(
-                stock.getTicker(), LocalDate.now().minusYears(2L),
+                stock.getTicker(),
+                startDate,
                 LocalDate.now());
 
         List<MarketPrice> marketPriceList = historicalQuoteList.stream()
@@ -47,8 +57,9 @@ public class MarketPriceServiceImpl implements MarketPriceService {
 
         marketPriceList.forEach(marketPrice -> marketPrice.setStock(stock));
 
+        Set<LocalDate> existingPriceDates = marketPriceRepository.findAllPriceDatesByStock(stock);
         marketPriceList = marketPriceList.stream()
-                .filter(marketPrice -> !marketPriceRepository.existsByStockAndDate(stock, marketPrice.getPriceDate()))
+                .filter(marketPrice -> !existingPriceDates.contains(marketPrice.getPriceDate()))
                 .toList();
 
         List<MarketPrice> savedMarketPriceList = marketPriceRepository.saveAll(marketPriceList);
@@ -77,12 +88,9 @@ public class MarketPriceServiceImpl implements MarketPriceService {
 
         log.debug("MarketPrice retrieved for ticker [ticker={}]", stock.getTicker());
 
-        MarketPriceInternalResponseDTO marketPriceInternalResponseDTO = new MarketPriceInternalResponseDTO();
-        marketPriceInternalResponseDTO.setTicker(marketPrice.getStock().getTicker());
-        marketPriceInternalResponseDTO.setPrice(marketPrice.getClosePrice());
-
-
-        return marketPriceInternalResponseDTO;
+        return new MarketPriceInternalResponseDTO(
+                marketPrice.getStock().getTicker(),
+                marketPrice.getClosePrice());
     }
 
     private MarketPrice updateMarketPriceFromHistoricalQuote(HistoricalQuote historicalQuote) {

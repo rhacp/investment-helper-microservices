@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.market.model.dto;
+package com.anghel.investmenthelper.market.model.dto.market_price;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

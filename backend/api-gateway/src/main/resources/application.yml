@@ -24,7 +24,7 @@ spring:
             - id: portfolio-service-route
               uri: lb://portfolio-service
               predicates:
-                - Path=/api/v1/portfolios/**
+                - Path=/api/v1/portfolios/**,/api/v1/holdings/**
 
             - id: market-data-service-route
               uri: lb://market-data-service

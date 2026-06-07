@@ -28,7 +28,7 @@ public class UserAuthorizationServiceImpl implements UserAuthorizationService {
 
         JwtAuthenticationToken jwt = (JwtAuthenticationToken) authentication;
         Long authUserId = Long.parseLong(jwt.getToken().getSubject());
-        User user = userQueryService.getValidUser(userId);
+        User user = userQueryService.getValidUserByAuthUserId(authUserId);
 
         boolean allowed = user.getAuthUserId().equals(authUserId);
         if (!allowed) {

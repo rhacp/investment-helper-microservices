@@ -14,12 +14,22 @@ public class UserQueryServiceImpl implements UserQueryService {
         this.userRepository = userRepository;
     }
 
-    @Override
-    public User getValidUser(Long id) {
-        User user =  userRepository.findUserById(id);
+//    @Override
+//    public User getValidUser(Long id) {
+//        User user =  userRepository.findUserById(id);
+//
+//        if (user == null) {
+//            throw new ResourceNotFoundException("User with id " + id + " not found");
+//        }
+//
+//        return user;
+//    }
 
+    @Override
+    public User getValidUserByAuthUserId(Long authUserId) {
+        User user = userRepository.findUserByAuthUserId(authUserId);
         if (user == null) {
-            throw new ResourceNotFoundException("User with id " + id + " not found");
+            throw new ResourceNotFoundException("User with authUserId " + authUserId + " not found");
         }
 
         return user;

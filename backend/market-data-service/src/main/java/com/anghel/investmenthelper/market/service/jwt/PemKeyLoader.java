@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.market.service;
+package com.anghel.investmenthelper.market.service.jwt;
 
 import com.anghel.investmenthelper.market.util.property.JwtProperties;
 import jakarta.annotation.PostConstruct;

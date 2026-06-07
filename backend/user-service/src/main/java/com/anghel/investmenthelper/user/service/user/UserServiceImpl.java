@@ -52,25 +52,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getUserById(Long id) {
-        User user = userQueryService.getValidUser(id);
-        log.debug("User retrieved [id={}]", id);
+    public UserDTO getUserById(Long authUserId) {
+        User user = userQueryService.getValidUserByAuthUserId(authUserId);
+        log.debug("User retrieved [id={}]", authUserId);
 
         return modelMapper.map(user, UserDTO.class);
     }
 
     @Transactional
     @Override
-    public void deleteUserById(Long id) {
-        userQueryService.getValidUser(id);
-        userRepository.deleteById(id);
-        log.info("User deleted [id={}]", id);
+    public void deleteUserById(Long authUserId) {
+        userQueryService.getValidUserByAuthUserId(authUserId);
+        userRepository.deleteById(authUserId);
+        log.info("User deleted [id={}]", authUserId);
     }
 
     @Transactional
     @Override
-    public UserDTO updateUserById(UserUpdateDTO userUpdateDTO, Long id) {
-        User user = userQueryService.getValidUser(id);
+    public UserDTO updateUserById(UserUpdateDTO userUpdateDTO, Long authUserId) {
+        User user = userQueryService.getValidUserByAuthUserId(authUserId);
 
         updateUserFromDTO(user, userUpdateDTO);
         User savedUser = userRepository.save(user);

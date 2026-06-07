@@ -17,10 +17,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateHoldingRequestDTO {
-
-    @NotBlank
-    private String ticker;
+public class UpdateHoldingRequestDTO {
 
     @NotNull
     @DecimalMin(value = "0.00000001")

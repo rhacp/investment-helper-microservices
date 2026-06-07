@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.market.service;
+package com.anghel.investmenthelper.market.service.jwt;
 
 import java.security.interfaces.RSAPublicKey;
 

@@ -27,10 +27,10 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userInputDTO));
     }
 
-    @GetMapping("/users/{id}")
-    @PreAuthorize("@userAuthorizationService.canAccessUser(#id, authentication)")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    @GetMapping("/users/{authUserId}")
+    @PreAuthorize("@userAuthorizationService.canAccessUser(#authUserId, authentication)")
+    public ResponseEntity<UserDTO> getUser(@PathVariable Long authUserId) {
+        return ResponseEntity.ok(userService.getUserById(authUserId));
     }
 
     @GetMapping("/users")

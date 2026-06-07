@@ -4,6 +4,7 @@ import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequ
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.CreatePortfolioRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.PortfolioResponseDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.portfolio.UpdatePortfolioRequestDTO;
 import com.anghel.investmenthelper.portfolio.service.portfolio.PortfolioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -26,16 +27,17 @@ public class PortfolioController {
     }
 
     @PostMapping
-    @PreAuthorize("@portfolioAuthorizationService.canAccessPortfolio(#portfolioId, authentication)")
-    public ResponseEntity<PortfolioResponseDTO> createPortfolio(@Valid @RequestBody CreatePortfolioRequestDTO createPortfolioRequestDTO) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PortfolioResponseDTO> createPortfolio(@Valid @RequestBody CreatePortfolioRequestDTO createPortfolioRequestDTO,
+                                                                @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(portfolioService.createPortfolio(createPortfolioRequestDTO));
+                .body(portfolioService.createPortfolio(createPortfolioRequestDTO, jwt));
     }
 
     @GetMapping
-    @PreAuthorize("@portfolioAuthorizationService.canAccessPortfolio(#portfolioId, authentication)")
-    public ResponseEntity<List<PortfolioResponseDTO>> getAllPortfolios() {
-        return ResponseEntity.ok(portfolioService.getAllPortfolios());
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<PortfolioResponseDTO>> getAllPortfolios(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(portfolioService.getAllPortfolios(jwt));
     }
 
     @GetMapping("/{portfolioId}")
@@ -54,8 +56,8 @@ public class PortfolioController {
     @PatchMapping("/{portfolioId}")
     @PreAuthorize("@portfolioAuthorizationService.canAccessPortfolio(#portfolioId, authentication)")
     public ResponseEntity<PortfolioResponseDTO> updatePortfolioById(@PathVariable Long portfolioId,
-                                                                    @Valid @RequestBody CreatePortfolioRequestDTO createPortfolioRequestDTO) {
-        return ResponseEntity.ok(portfolioService.updatePortfolioById(createPortfolioRequestDTO, portfolioId));
+                                                                    @Valid @RequestBody UpdatePortfolioRequestDTO updatePortfolioRequestDTO) {
+        return ResponseEntity.ok(portfolioService.updatePortfolioById(updatePortfolioRequestDTO, portfolioId));
     }
 
     @PostMapping("/{portfolioId}/holdings")

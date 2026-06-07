@@ -1,6 +1,6 @@
 package com.anghel.investmenthelper.portfolio.model.dto.portfolio;
 
-import com.anghel.investmenthelper.portfolio.model.entity.Holding;
+import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,5 +23,5 @@ public class PortfolioResponseDTO {
 
     private BigDecimal totalProfitLoss;
 
-    private List<Holding> holdings;
+    private List<HoldingResponseDTO> holdings;
 }

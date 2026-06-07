@@ -2,12 +2,11 @@ package com.anghel.investmenthelper.portfolio.controller;
 
 import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.holding.UpdateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.service.holding.HoldingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,7 +29,7 @@ public class HoldingController {
     @PatchMapping("/{holdingId}")
     @PreAuthorize("@holdingAuthorizationService.canAccessHolding(#holdingId, authentication)")
     public ResponseEntity<HoldingResponseDTO> updateHoldingById(@PathVariable Long holdingId,
-                                                                @Valid @RequestBody CreateHoldingRequestDTO createHoldingRequestDTO) {
-        return ResponseEntity.ok(holdingService.updateHoldingById(createHoldingRequestDTO, holdingId));
+                                                                @Valid @RequestBody UpdateHoldingRequestDTO updateHoldingRequestDTO) {
+        return ResponseEntity.ok(holdingService.updateHoldingById(updateHoldingRequestDTO, holdingId));
     }
 }

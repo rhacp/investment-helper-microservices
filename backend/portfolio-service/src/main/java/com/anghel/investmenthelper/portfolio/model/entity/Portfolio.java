@@ -40,4 +40,9 @@ public class Portfolio {
     )
     @JsonManagedReference(value = "holding")
     private List<Holding> holdings = new ArrayList<>();
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

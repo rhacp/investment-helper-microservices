@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -44,6 +45,19 @@ public class PredictionResult {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "validated_on")
+    private LocalDate validatedOn;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "actual_label")
+    private PredictionLabel actualLabel;
+
+    @Column(name = "correct")
+    private Boolean correct;
+
+    @Column(name = "reference_close_price", nullable = false)
+    private BigDecimal referenceClosePrice;
 
     @PrePersist
     public void prePersist() {

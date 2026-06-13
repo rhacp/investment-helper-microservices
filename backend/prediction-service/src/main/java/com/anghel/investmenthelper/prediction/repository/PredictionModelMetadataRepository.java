@@ -10,4 +10,6 @@ public interface PredictionModelMetadataRepository extends JpaRepository<Predict
     PredictionModelMetadata findTopByTickerOrderByModelVersionDesc(String ticker);
 
     List<PredictionModelMetadata> findAllByTickerIgnoreCaseAndActiveTrue(String ticker);
+
+    PredictionModelMetadata findTopByTickerIgnoreCaseAndActiveTrueOrderByModelVersionDesc(String ticker);
 }

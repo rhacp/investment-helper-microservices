@@ -1,7 +1,7 @@
 package com.anghel.investmenthelper.prediction.controller;
 
-import com.anghel.investmenthelper.prediction.model.dto.TrainingModelRequestDTO;
-import com.anghel.investmenthelper.prediction.model.dto.TrainingModelResponseDTO;
+import com.anghel.investmenthelper.prediction.model.dto.training.TrainingModelRequestDTO;
+import com.anghel.investmenthelper.prediction.model.dto.training.TrainingModelResponseDTO;
 import com.anghel.investmenthelper.prediction.service.model.PredictionModelMetadataService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

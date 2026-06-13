@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Setter
 @ConfigurationProperties(prefix = "jwt")
 @EnableScheduling
+
 public class JwtProperties {
 
     private String issuer;

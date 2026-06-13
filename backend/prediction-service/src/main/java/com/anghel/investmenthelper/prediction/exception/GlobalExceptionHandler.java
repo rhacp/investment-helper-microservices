@@ -72,6 +72,12 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorDTO> handleResourceNotFoundException(ResourceNotFoundException exception, HttpServletRequest request){
+        log.warn("Resource not found: {}", exception.getMessage());
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDTO> handleException(Exception exception, HttpServletRequest request){
         log.error("Unexpected error [path={}, message={}]",
@@ -81,7 +87,6 @@ public class GlobalExceptionHandler {
 
         return buildErrorResponse("Internal server error", null, request.getRequestURI(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     private ResponseEntity<ErrorDTO> buildErrorResponse(String message, Map<String, List<String>> errors, String path, HttpStatus status) {
         ErrorDTO errorDTO = new ErrorDTO();

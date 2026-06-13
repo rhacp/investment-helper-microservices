@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.prediction.model.dto;
+package com.anghel.investmenthelper.prediction.model.dto.prediction;
 
 import com.anghel.investmenthelper.prediction.util.enumeration.PredictionLabel;
 import lombok.AllArgsConstructor;

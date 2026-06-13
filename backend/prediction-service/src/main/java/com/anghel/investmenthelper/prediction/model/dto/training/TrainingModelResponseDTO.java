@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.prediction.model.dto;
+package com.anghel.investmenthelper.prediction.model.dto.training;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

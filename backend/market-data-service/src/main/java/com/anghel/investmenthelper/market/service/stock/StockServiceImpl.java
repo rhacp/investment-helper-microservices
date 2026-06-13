@@ -1,13 +1,19 @@
 package com.anghel.investmenthelper.market.service.stock;
 
+import com.anghel.investmenthelper.market.client.PredictionClient;
+import com.anghel.investmenthelper.market.event.StockCreatedEvent;
+import com.anghel.investmenthelper.market.model.dto.TrainingModelRequestDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;
+import com.anghel.investmenthelper.market.model.dto.stock.StockTickerResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.stock.SyncStockRequestDTO;
 import com.anghel.investmenthelper.market.model.entity.Stock;
 import com.anghel.investmenthelper.market.repository.StockRepository;
 import com.anghel.investmenthelper.market.service.market_price.MarketPriceService;
 import com.anghel.investmenthelper.market.service.yahoo.YahooFinanceClient;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -17,11 +23,14 @@ import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class StockServiceImpl implements StockService {
 
     private final ModelMapper modelMapper;
 
     private final StockRepository stockRepository;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private final YahooFinanceClient yahooFinanceClient;
 
@@ -29,26 +38,15 @@ public class StockServiceImpl implements StockService {
 
     private final MarketPriceService marketPriceService;
 
-    public StockServiceImpl(ModelMapper modelMapper,
-                            StockRepository stockRepository,
-                            YahooFinanceClient yahooFinanceClient,
-                            StockQueryService stockQueryService,
-                            MarketPriceService marketPriceService) {
-        this.modelMapper = modelMapper;
-        this.stockRepository = stockRepository;
-        this.yahooFinanceClient = yahooFinanceClient;
-        this.stockQueryService = stockQueryService;
-        this.marketPriceService = marketPriceService;
-    }
-
     @Transactional
     @Override
     public StockResponseDTO syncStock(SyncStockRequestDTO request) {
         yahoofinance.Stock yahooStock = yahooFinanceClient.getStock(request.getTicker());
 
         Stock stock = stockRepository.findStockByTickerIgnoreCase(request.getTicker());
+        boolean newStock = stock == null;
 
-        if (stock == null) {
+        if (newStock) {
             stock = new Stock();
             stock.setTicker(request.getTicker());
         }
@@ -60,6 +58,11 @@ public class StockServiceImpl implements StockService {
                 savedStock.getTicker());
 
         marketPriceService.syncMarketPrices(savedStock);
+
+        if (newStock) {
+            applicationEventPublisher.publishEvent(new StockCreatedEvent(savedStock.getTicker()));
+            log.info("Stock created event published [ticker={}]", savedStock.getTicker());
+        }
 
         return modelMapper.map(savedStock, StockResponseDTO.class);
     }
@@ -109,6 +112,18 @@ public class StockServiceImpl implements StockService {
                 successful,
                 failed
         );
+    }
+
+    @Override
+    public List<StockTickerResponseDTO> getAllStocks() {
+        List<StockTickerResponseDTO> stocks = stockRepository.findAll()
+                .stream()
+                .map(stock -> new StockTickerResponseDTO(stock.getTicker()))
+                .toList();
+
+        log.debug("Retrieved stocks [count={}]", stocks.size());
+
+        return stocks;
     }
 
     private static void updateStockFromYahoo(Stock stock, yahoofinance.Stock yahooStock) {

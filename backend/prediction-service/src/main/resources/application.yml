@@ -25,5 +25,6 @@ jwt:
   public-key-path: ${JWT_PUBLIC_KEY_PATH:classpath:keys/public.pem}
 
 prediction:
-  training-years: ${PREDICTION_TRAINING_YEARS:2}
   minimum-training-records: ${PREDICTION_MINIMUM_RECORDS:200}
+  model-storage-path: ${MODEL_STORAGE_PATH:models}
+  training-ratio: ${TRAINING_RATIO:0.8}

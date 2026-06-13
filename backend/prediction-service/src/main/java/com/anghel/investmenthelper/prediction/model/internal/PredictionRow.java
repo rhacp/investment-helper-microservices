@@ -1,12 +1,11 @@
 package com.anghel.investmenthelper.prediction.model.internal;
 
-import com.anghel.investmenthelper.prediction.util.enumeration.PredictionLabel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class TrainingRow {
+public class PredictionRow {
 
     private final Double dailyReturn;
 
@@ -17,6 +16,4 @@ public class TrainingRow {
     private final Double volatility5;
 
     private final Double volumeChange;
-
-    private final PredictionLabel predictionLabel;
 }

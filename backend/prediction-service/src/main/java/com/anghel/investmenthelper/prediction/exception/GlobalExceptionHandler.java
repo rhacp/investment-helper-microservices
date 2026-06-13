@@ -46,6 +46,32 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler({InvalidTrainingDataException.class})
+    public ResponseEntity<ErrorDTO> handleInvalidTrainingDataException(Exception exception, HttpServletRequest request) {
+        log.warn(
+                "Invalid request received [message={}, path={}]",
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({ModelStorageException.class})
+    public ResponseEntity<ErrorDTO> handleModelStorageException(Exception exception, HttpServletRequest request) {
+        log.error(
+                "Model storage operation failed [message={}, path={}]",
+                exception.getMessage(),
+                request.getRequestURI(),
+                exception
+        );
+        return buildErrorResponse(
+                exception.getMessage(),
+                null,
+                request.getRequestURI(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDTO> handleException(Exception exception, HttpServletRequest request){
         log.error("Unexpected error [path={}, message={}]",

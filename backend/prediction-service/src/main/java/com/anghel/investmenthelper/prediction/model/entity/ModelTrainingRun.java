@@ -44,7 +44,7 @@ public class ModelTrainingRun {
     private Double accuracy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prediction_model_metadata_id", nullable = false)
+    @JoinColumn(name = "prediction_model_metadata_id")
     private PredictionModelMetadata predictionModelMetadata;
 
     @PrePersist

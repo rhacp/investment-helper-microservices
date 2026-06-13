@@ -25,9 +25,6 @@ public class TrainController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TrainingModelResponseDTO> trainModel(
             @Valid @RequestBody TrainingModelRequestDTO request) {
-
-        return ResponseEntity.ok(
-                predictionModelMetadataService.trainModel(request)
-        );
+        return ResponseEntity.ok(predictionModelMetadataService.trainModel(request));
     }
 }

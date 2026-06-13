@@ -25,9 +25,6 @@ public class PredictionController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PredictionResponseDTO> predict(
             @Valid @RequestBody PredictionRequestDTO request) {
-
-        return ResponseEntity.ok(
-                predictionService.predict(request)
-        );
+        return ResponseEntity.ok(predictionService.predict(request));
     }
 }

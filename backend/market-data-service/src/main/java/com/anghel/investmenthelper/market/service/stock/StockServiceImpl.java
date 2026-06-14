@@ -1,8 +1,6 @@
 package com.anghel.investmenthelper.market.service.stock;
 
-import com.anghel.investmenthelper.market.client.PredictionClient;
 import com.anghel.investmenthelper.market.event.StockCreatedEvent;
-import com.anghel.investmenthelper.market.model.dto.TrainingModelRequestDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;

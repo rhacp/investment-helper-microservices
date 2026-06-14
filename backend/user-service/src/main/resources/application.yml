@@ -23,3 +23,11 @@ eureka:
 jwt:
   issuer: ${JWT_ISSUER:investment-helper-auth-service}
   public-key-path: ${JWT_PUBLIC_KEY_PATH:classpath:keys/public.pem}
+
+app:
+  bootstrap-admin:
+    enabled: true
+    auth-user-id: 1
+    first-name: System
+    last-name: Administrator
+    date-of-birth: 2000-01-01

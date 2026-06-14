@@ -1,6 +1,5 @@
 package com.anghel.investmenthelper.portfolio.controller;
 
-import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.UpdateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.service.holding.HoldingService;

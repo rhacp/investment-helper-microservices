@@ -47,6 +47,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         this.userServiceClient = userServiceClient;
     }
 
+    @Transactional
     @Override
     public RegisterResponseDTO register(RegisterRequestDTO registerRequestDTO) {
         authUserServiceValidator.checkIfAuthUserExists(registerRequestDTO);
@@ -93,13 +94,12 @@ public class AuthUserServiceImpl implements AuthUserService {
         checkIfPasswordCorrect(loginRequestDTO.getPassword(), authUser.getPasswordHash());
 
         String accessToken = jwtService.generateAccessToken(authUser);
-        LoginResponseDTO loginResponseDTO = new LoginResponseDTO(
+
+        return new LoginResponseDTO(
                 accessToken,
                 "Bearer",
                 jwtProperties.getAccessTokenExpirationSeconds()
         );
-
-        return loginResponseDTO;
     }
 
     @Transactional

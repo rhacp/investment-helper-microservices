@@ -11,15 +11,15 @@ spring:
         webflux:
           routes:
 
-            - id: user-service-route
-              uri: lb://user-service
-              predicates:
-                - Path=/api/v1/users/**
-
             - id: auth-service-route
               uri: lb://auth-service
               predicates:
                 - Path=/api/v1/auth/**
+
+            - id: user-service-route
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/users/**
 
             - id: portfolio-service-route
               uri: lb://portfolio-service
@@ -34,7 +34,7 @@ spring:
             - id: prediction-service-route
               uri: lb://prediction-service
               predicates:
-                - Path=/api/v1/predictions/**
+                - Path=/api/v1/predictions/**,/api/v1/trainings/**
 
             - id: analytics-service-route
               uri: lb://analytics-service

@@ -72,7 +72,7 @@ public class MarketPriceServiceImpl implements MarketPriceService {
 
     @Override
     public List<MarketPriceResponseDTO> getMarketPriceListByStock(Stock stock) {
-        List<MarketPrice> marketPriceList = marketPriceRepository.findAllByStockOrderByDateAsc(stock);
+        List<MarketPrice> marketPriceList = marketPriceRepository.findAllByStockOrderByPriceDateAsc(stock);
         log.debug("MarketPrice list retrieved for stock [ticker={}]", stock.getTicker());
 
         return marketPriceList.stream()
@@ -82,7 +82,7 @@ public class MarketPriceServiceImpl implements MarketPriceService {
 
     @Override
     public MarketPriceInternalResponseDTO getMarketPriceByStock(Stock stock) {
-        MarketPrice marketPrice = marketPriceRepository.findTopByStockOrderByDateDesc(stock)
+        MarketPrice marketPrice = marketPriceRepository.findTopByStockOrderByPriceDateDesc(stock)
                 .orElseThrow(() -> new ResourceNotFoundException("Market Price not found for stock " + stock.getTicker()));
 
         log.debug("MarketPrice retrieved for ticker [ticker={}]", stock.getTicker());
@@ -94,7 +94,7 @@ public class MarketPriceServiceImpl implements MarketPriceService {
 
     @Override
     public MarketPriceResponseDTO getFullMarketPriceByStock(Stock stock) {
-        MarketPrice marketPrice = marketPriceRepository.findTopByStockOrderByDateDesc(stock)
+        MarketPrice marketPrice = marketPriceRepository.findTopByStockOrderByPriceDateDesc(stock)
                 .orElseThrow(() -> new ResourceNotFoundException("Market Price not found for stock " + stock.getTicker()));
 
         log.debug("MarketPrice retrieved for ticker [ticker={}]", stock.getTicker());

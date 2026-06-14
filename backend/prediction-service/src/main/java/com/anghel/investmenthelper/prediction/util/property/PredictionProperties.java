@@ -14,7 +14,7 @@ public class PredictionProperties {
 
     private String modelStoragePath;
 
-    private Integer trainingRatio;
+    private Double trainingRatio;
 
     @PostConstruct
     void validate() {

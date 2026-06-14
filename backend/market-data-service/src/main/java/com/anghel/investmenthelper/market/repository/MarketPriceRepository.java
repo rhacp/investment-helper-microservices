@@ -13,13 +13,16 @@ import java.util.Set;
 
 public interface MarketPriceRepository extends JpaRepository<MarketPrice, Long> {
 
-    List<MarketPrice> findAllByStockOrderByDateAsc(Stock stock);
+    List<MarketPrice> findAllByStockOrderByPriceDateAsc(Stock stock);
 
-    Optional<MarketPrice> findTopByStockOrderByDateDesc(Stock stock);
+    Optional<MarketPrice> findTopByStockOrderByPriceDateDesc(Stock stock);
 
-    boolean existsByStockAndDate(Stock stock, LocalDate date);
-
-    LocalDate findLatestPriceDate(Stock stock);
+    @Query("""
+        select max(mp.priceDate)
+        from MarketPrice mp
+        where mp.stock = :stock
+        """)
+    LocalDate findLatestPriceDate(@Param("stock") Stock stock);
 
     @Query("""
                 select mp.priceDate

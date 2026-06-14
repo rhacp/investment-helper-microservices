@@ -7,6 +7,7 @@ import com.anghel.investmenthelper.market.model.dto.stock.StockTickerResponseDTO
 import com.anghel.investmenthelper.market.model.dto.stock.SyncStockRequestDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface StockService {
 
@@ -21,4 +22,8 @@ public interface StockService {
     void syncAllStocks();
 
     List<StockTickerResponseDTO> getAllStocks();
+
+    MarketPriceResponseDTO getFullMarketPriceByTicker(String ticker);
+
+    Map<String, MarketPriceInternalResponseDTO> getLatestPrices(List<String> tickers);
 }

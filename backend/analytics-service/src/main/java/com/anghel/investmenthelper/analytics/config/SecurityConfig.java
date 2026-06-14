@@ -1,7 +1,7 @@
 package com.anghel.investmenthelper.analytics.config;
 
 import com.anghel.investmenthelper.analytics.security.JwtAccessDeniedHandler;
-import com.anghel.investmenthelper.analytics.service.KeyLoader;
+import com.anghel.investmenthelper.analytics.service.jwt.KeyLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;

@@ -20,6 +20,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -124,6 +127,21 @@ public class StockServiceImpl implements StockService {
         log.debug("Retrieved stocks [count={}]", stocks.size());
 
         return stocks;
+    }
+
+    @Override
+    public MarketPriceResponseDTO getFullMarketPriceByTicker(String ticker) {
+        Stock stock = stockQueryService.getValidStock(ticker);
+        log.debug("Stock retrieved [ticker={}]", ticker);
+
+        return marketPriceService.getFullMarketPriceByStock(stock);
+    }
+
+    @Override
+    public Map<String, MarketPriceInternalResponseDTO> getLatestPrices(List<String> tickers) {
+        log.debug("Retrieving latest prices for {} tickers", tickers.size());
+        return tickers.stream()
+                .collect(Collectors.toMap(Function.identity(), ticker -> getMarketPriceByTicker(ticker)));
     }
 
     private static void updateStockFromYahoo(Stock stock, yahoofinance.Stock yahooStock) {

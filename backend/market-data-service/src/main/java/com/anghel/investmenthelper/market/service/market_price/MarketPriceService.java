@@ -13,4 +13,6 @@ public interface MarketPriceService {
     List<MarketPriceResponseDTO> getMarketPriceListByStock(Stock stock);
 
     MarketPriceInternalResponseDTO getMarketPriceByStock(Stock stock);
+
+    MarketPriceResponseDTO getFullMarketPriceByStock(Stock stock);
 }

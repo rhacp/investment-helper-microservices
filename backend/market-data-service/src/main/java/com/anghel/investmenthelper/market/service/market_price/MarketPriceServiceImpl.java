@@ -83,14 +83,23 @@ public class MarketPriceServiceImpl implements MarketPriceService {
     @Override
     public MarketPriceInternalResponseDTO getMarketPriceByStock(Stock stock) {
         MarketPrice marketPrice = marketPriceRepository.findTopByStockOrderByDateDesc(stock)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Market Price not found for stock " + stock.getTicker()));
+                .orElseThrow(() -> new ResourceNotFoundException("Market Price not found for stock " + stock.getTicker()));
 
         log.debug("MarketPrice retrieved for ticker [ticker={}]", stock.getTicker());
 
         return new MarketPriceInternalResponseDTO(
                 marketPrice.getStock().getTicker(),
                 marketPrice.getClosePrice());
+    }
+
+    @Override
+    public MarketPriceResponseDTO getFullMarketPriceByStock(Stock stock) {
+        MarketPrice marketPrice = marketPriceRepository.findTopByStockOrderByDateDesc(stock)
+                .orElseThrow(() -> new ResourceNotFoundException("Market Price not found for stock " + stock.getTicker()));
+
+        log.debug("MarketPrice retrieved for ticker [ticker={}]", stock.getTicker());
+
+        return modelMapper.map(marketPrice, MarketPriceResponseDTO.class);
     }
 
     private MarketPrice updateMarketPriceFromHistoricalQuote(HistoricalQuote historicalQuote) {

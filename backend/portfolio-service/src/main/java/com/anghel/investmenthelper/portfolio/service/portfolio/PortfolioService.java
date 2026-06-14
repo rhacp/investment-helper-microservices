@@ -2,6 +2,7 @@ package com.anghel.investmenthelper.portfolio.service.portfolio;
 
 import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.internal.PortfolioDetailsInternalResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.CreatePortfolioRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.PortfolioResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.UpdatePortfolioRequestDTO;
@@ -26,4 +27,6 @@ public interface PortfolioService {
                                                Long portfolioId);
 
     List<HoldingResponseDTO> getHoldingsByPortfolio(Long portfolioId);
+
+    PortfolioDetailsInternalResponseDTO getPortfolioDetailsInternal(Long portfolioId);
 }

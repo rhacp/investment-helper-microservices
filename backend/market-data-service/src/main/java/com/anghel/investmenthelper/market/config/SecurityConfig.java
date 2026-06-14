@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**", "/api/v1/internal/**")
+                        .requestMatchers("/actuator/health", "/api/v1/internal/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated()

@@ -2,6 +2,8 @@ package com.anghel.investmenthelper.portfolio.service.portfolio;
 
 import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.internal.HoldingInternalResponseDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.internal.PortfolioDetailsInternalResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.CreatePortfolioRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.PortfolioResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.portfolio.UpdatePortfolioRequestDTO;
@@ -116,6 +118,31 @@ public class PortfolioServiceImpl implements PortfolioService {
         return portfolio.getHoldings().stream()
                 .map(holding -> modelMapper.map(holding, HoldingResponseDTO.class))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public PortfolioDetailsInternalResponseDTO getPortfolioDetailsInternal(Long portfolioId) {
+        Portfolio portfolio = portfolioQueryService.getValidPortfolio(portfolioId);
+        log.debug("Internal portfolio details retrieved [portfolioId={}]", portfolioId);
+
+        return new PortfolioDetailsInternalResponseDTO(
+                portfolio.getId(),
+                portfolio.getName(),
+                portfolio.getAuthUserId(),
+                portfolio.getHoldings()
+                        .stream()
+                        .map(this::mapHoldingInternal)
+                        .toList()
+        );
+    }
+
+    private HoldingInternalResponseDTO mapHoldingInternal(Holding holding) {
+        return new HoldingInternalResponseDTO(
+                holding.getTicker(),
+                holding.getQuantity(),
+                holding.getAverageBuyPrice()
+        );
     }
 
     private static Long getAuthUserId(Jwt jwt) {

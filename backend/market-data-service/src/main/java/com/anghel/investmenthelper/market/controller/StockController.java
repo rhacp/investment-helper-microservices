@@ -1,5 +1,6 @@
 package com.anghel.investmenthelper.market.controller;
 
+import com.anghel.investmenthelper.market.model.dto.BatchMarketPriceRequestDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;
@@ -12,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -54,5 +56,16 @@ public class StockController {
     @GetMapping("/internal/stocks")
     public ResponseEntity<List<StockTickerResponseDTO>> getAllStocks() {
         return ResponseEntity.ok(stockService.getAllStocks());
+    }
+
+    @GetMapping("/internal/stocks/{ticker}/full-price")
+    public ResponseEntity<MarketPriceResponseDTO> getLatestMarketPriceByTickerInternal(
+            @PathVariable String ticker) {
+        return ResponseEntity.ok(stockService.getFullMarketPriceByTicker(ticker));
+    }
+
+    @PostMapping("/internal/stocks/prices")
+    public ResponseEntity<Map<String, MarketPriceInternalResponseDTO>> getLatestPrices(@RequestBody BatchMarketPriceRequestDTO request) {
+        return ResponseEntity.ok(stockService.getLatestPrices(request.getTickers()));
     }
 }

@@ -56,6 +56,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponse("Internal server error", null, request.getRequestURI(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(AnalyticsCalculationException.class)
+    public ResponseEntity<ErrorDTO> handleAnalyticsCalculationException(AnalyticsCalculationException exception, HttpServletRequest request) {
+        log.error(
+                "Analytics calculation failed. Path: {}, Message: {}",
+                request.getRequestURI(),
+                exception.getMessage(),
+                exception
+        );
+
+        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.BAD_REQUEST);
+    }
 
     private ResponseEntity<ErrorDTO> buildErrorResponse(String message, Map<String, List<String>> errors, String path, HttpStatus status) {
         ErrorDTO errorDTO = new ErrorDTO();

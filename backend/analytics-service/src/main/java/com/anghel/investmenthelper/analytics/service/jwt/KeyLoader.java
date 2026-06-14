@@ -1,4 +1,4 @@
-package com.anghel.investmenthelper.analytics.service;
+package com.anghel.investmenthelper.analytics.service.jwt;
 
 import java.security.interfaces.RSAPublicKey;
 

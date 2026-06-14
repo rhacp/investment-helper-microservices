@@ -1,46 +1,53 @@
 package com.anghel.investmenthelper.user.model.entity;
 
-import com.anghel.investmenthelper.user.util.enumeration.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
-@Data
-@Entity
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="users")
+@Entity
+@Table(name="user_profiles")
 public class User {
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "firstName", nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(name = "lastName",  nullable = false)
+    @Column(name = "last_name",  nullable = false)
     private String lastName;
 
-    @Column(name = "email",  nullable = false, unique = true)
-    private String email;
-
-    @Column(name = "passwordHash",  nullable = false)
-    private String passwordHash;
-
-    @Column(name = "creationDate", nullable = false)
-    private LocalDate creationDate;
-
-    @Column(name = "creationTime", nullable = false)
-    private LocalTime creationTime;
-
-    @Column(name = "dateOfBirth",  nullable = false)
+    @Column(name = "date_of_birth",  nullable = false)
     private LocalDate dateOfBirth;
 
-    @Column(name = "role",  nullable = false)
-    private Role role;
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "auth_user_id", nullable = false, unique = true)
+    private Long authUserId;
+
+    @Column(nullable = false)
+    private Boolean active = true;
+
+    @PrePersist
+    public void prePersist(){
+        this.active = true;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate(){
+        this.updatedAt = LocalDateTime.now();
+    }
 }

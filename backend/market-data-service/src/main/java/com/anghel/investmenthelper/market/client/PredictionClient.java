@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "prediction-service")
 public interface PredictionClient {
 
-    @PostMapping("/api/v1/trainings/train")
+    @PostMapping("/api/v1/internal/trainings/train")
     void trainModel(@RequestBody TrainingModelRequestDTO request);
 }

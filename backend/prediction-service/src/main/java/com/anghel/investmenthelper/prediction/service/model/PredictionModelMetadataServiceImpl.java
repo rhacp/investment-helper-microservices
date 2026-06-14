@@ -122,8 +122,9 @@ public class PredictionModelMetadataServiceImpl implements PredictionModelMetada
             metadata.setTrainedAt(LocalDateTime.now());
             metadata.setActive(true);
 
-            PredictionModelMetadata savedMetadata = predictionModelMetadataRepository.save(metadata);
-            modelTrainingRunService.markSuccess(run.getId(), savedMetadata, trainingRows.size(), accuracy);
+            PredictionModelMetadata savedMetadata = predictionModelMetadataRepository.saveAndFlush(metadata);
+            log.info("Metadata saved [id={}, ticker={}]", savedMetadata.getId(), savedMetadata.getTicker());
+            modelTrainingRunService.markSuccess(run.getId(), savedMetadata.getId(), trainingRows.size(), accuracy);
 
             log.info("Model trained successfully [ticker={}, version={}, recordsUsed={}, accuracy={}]",
                     ticker,

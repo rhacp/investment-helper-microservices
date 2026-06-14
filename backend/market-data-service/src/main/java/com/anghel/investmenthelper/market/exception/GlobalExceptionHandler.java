@@ -52,14 +52,8 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.NOT_FOUND);
     }
 
-//    @ExceptionHandler(IllegalArgumentException.class)
-//    public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException exception, HttpServletRequest request){
-//        log.warn("Argument not found: {}", exception.getMessage());
-//        return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.BAD_REQUEST);
-//    }
-
-    @ExceptionHandler(YahooFinanceException.class)
-    public ResponseEntity<ErrorDTO> handleYahooFinanceException(YahooFinanceException exception, HttpServletRequest request){
+    @ExceptionHandler(FinancialModelingPrepException.class)
+    public ResponseEntity<ErrorDTO> handleFinancialModelingPrepException(FinancialModelingPrepException exception, HttpServletRequest request){
         return buildErrorResponse(exception.getMessage(), null, request.getRequestURI(), HttpStatus.BAD_GATEWAY);
     }
 

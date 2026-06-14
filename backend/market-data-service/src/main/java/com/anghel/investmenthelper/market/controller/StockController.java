@@ -68,4 +68,9 @@ public class StockController {
     public ResponseEntity<Map<String, MarketPriceInternalResponseDTO>> getLatestPrices(@RequestBody BatchMarketPriceRequestDTO request) {
         return ResponseEntity.ok(stockService.getLatestPrices(request.getTickers()));
     }
+
+    @PostMapping("/internal/stocks/sync")
+    public ResponseEntity<StockResponseDTO> syncStockInternal(@Valid @RequestBody SyncStockRequestDTO request) {
+        return ResponseEntity.ok(stockService.syncStock(request));
+    }
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/trainings")
+@RequestMapping("/api/v1")
 public class TrainController {
 
     private final PredictionModelMetadataService predictionModelMetadataService;
@@ -21,10 +21,14 @@ public class TrainController {
         this.predictionModelMetadataService = predictionModelMetadataService;
     }
 
-    @PostMapping("/train")
+    @PostMapping("/trainings/train")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TrainingModelResponseDTO> trainModel(
-            @Valid @RequestBody TrainingModelRequestDTO request) {
+    public ResponseEntity<TrainingModelResponseDTO> trainModel(@Valid @RequestBody TrainingModelRequestDTO request) {
+        return ResponseEntity.ok(predictionModelMetadataService.trainModel(request));
+    }
+
+    @PostMapping("/internal/trainings/train")
+    public ResponseEntity<TrainingModelResponseDTO> trainModelInternal(@Valid @RequestBody TrainingModelRequestDTO request) {
         return ResponseEntity.ok(predictionModelMetadataService.trainModel(request));
     }
 }

@@ -1,5 +1,6 @@
 package com.anghel.investmenthelper.portfolio.service.portfolio;
 
+import com.anghel.investmenthelper.portfolio.client.MarketDataClient;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.internal.HoldingInternalResponseDTO;
@@ -11,6 +12,7 @@ import com.anghel.investmenthelper.portfolio.model.entity.Holding;
 import com.anghel.investmenthelper.portfolio.model.entity.Portfolio;
 import com.anghel.investmenthelper.portfolio.repository.PortfolioRepository;
 import com.anghel.investmenthelper.portfolio.service.holding.HoldingService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -18,10 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PortfolioServiceImpl implements PortfolioService {
 
     private final ModelMapper modelMapper;
@@ -32,12 +36,7 @@ public class PortfolioServiceImpl implements PortfolioService {
 
     private final HoldingService holdingService;
 
-    public PortfolioServiceImpl(ModelMapper modelMapper, PortfolioRepository portfolioRepository, PortfolioQueryService portfolioQueryService, HoldingService holdingService) {
-        this.modelMapper = modelMapper;
-        this.portfolioRepository = portfolioRepository;
-        this.portfolioQueryService = portfolioQueryService;
-        this.holdingService = holdingService;
-    }
+    private final MarketDataClient marketDataClient;
 
     @Transactional
     @Override
@@ -100,13 +99,13 @@ public class PortfolioServiceImpl implements PortfolioService {
 
     @Override
     public HoldingResponseDTO addHoldingToPortfolio(CreateHoldingRequestDTO createHoldingRequestDTO,
-                                                      Long portfolioId) {
+                                                    Long portfolioId) {
         Portfolio portfolio = portfolioQueryService.getValidPortfolio(portfolioId);
         log.debug("Portfolio retrieved [id={}]", portfolioId);
 
         Holding holding = holdingService.createHolding(createHoldingRequestDTO, portfolio);
 
-        return modelMapper.map(holding, HoldingResponseDTO.class);
+        return buildHoldingResponse(holding);
     }
 
     @Transactional(readOnly = true)
@@ -116,7 +115,7 @@ public class PortfolioServiceImpl implements PortfolioService {
         log.debug("Portfolio retrieved [id={}]", portfolioId);
 
         return portfolio.getHoldings().stream()
-                .map(holding -> modelMapper.map(holding, HoldingResponseDTO.class))
+                .map(this::buildHoldingResponse)
                 .toList();
     }
 
@@ -150,20 +149,46 @@ public class PortfolioServiceImpl implements PortfolioService {
     }
 
     private PortfolioResponseDTO buildPortfolioResponse(Portfolio portfolio) {
-        PortfolioResponseDTO portfolioResponseDTO = modelMapper.map(portfolio, PortfolioResponseDTO.class);
+        PortfolioResponseDTO response = modelMapper.map(portfolio, PortfolioResponseDTO.class);
 
-        portfolioResponseDTO.setTotalValue(portfolioResponseDTO.getHoldings().stream()
-                .map(holding -> holding.getCurrentPrice().multiply(holding.getQuantity()))
+        List<HoldingResponseDTO> holdings = portfolio.getHoldings().stream()
+                .map(this::buildHoldingResponse)
+                .toList();
+        response.setHoldings(holdings);
+
+        response.setTotalValue(holdings.stream()
+                .map(HoldingResponseDTO::getCurrentValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        portfolioResponseDTO.setTotalProfitLoss(BigDecimal.ZERO);
+        response.setTotalProfitLoss(holdings.stream()
+                .map(HoldingResponseDTO::getProfitLoss)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        return portfolioResponseDTO;
+        return response;
     }
 
     private void updatePortfolioFromDTO(UpdatePortfolioRequestDTO updatePortfolioRequestDTO, Portfolio portfolio) {
         if (updatePortfolioRequestDTO.getName() != null) {
             portfolio.setName(updatePortfolioRequestDTO.getName());
         }
+    }
+
+    private HoldingResponseDTO buildHoldingResponse(Holding holding) {
+        HoldingResponseDTO response = modelMapper.map(holding, HoldingResponseDTO.class);
+
+        BigDecimal currentPrice = marketDataClient.getMarketPriceByTicker(holding.getTicker()).getPrice();
+        BigDecimal currentValue = currentPrice.multiply(holding.getQuantity());
+        BigDecimal investedValue = holding.getAverageBuyPrice().multiply(holding.getQuantity());
+        BigDecimal profitLoss = currentValue.subtract(investedValue);
+        BigDecimal profitPercentage = investedValue.compareTo(BigDecimal.ZERO) == 0
+                ? BigDecimal.ZERO
+                : profitLoss.divide(investedValue, 8, RoundingMode.HALF_UP);
+
+        response.setCurrentPrice(currentPrice);
+        response.setCurrentValue(currentValue);
+        response.setProfitLoss(profitLoss);
+        response.setProfitPercentage(profitPercentage);
+
+        return response;
     }
 }

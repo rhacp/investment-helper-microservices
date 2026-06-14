@@ -3,6 +3,7 @@ package com.anghel.investmenthelper.prediction.service.model;
 import com.anghel.investmenthelper.prediction.model.entity.ModelTrainingRun;
 import com.anghel.investmenthelper.prediction.model.entity.PredictionModelMetadata;
 import com.anghel.investmenthelper.prediction.repository.ModelTrainingRunRepository;
+import com.anghel.investmenthelper.prediction.repository.PredictionModelMetadataRepository;
 import com.anghel.investmenthelper.prediction.util.enumeration.TrainingStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,12 @@ import java.time.LocalDateTime;
 @Service
 public class ModelTrainingRunServiceImpl implements ModelTrainingRunService {
 
+    private final PredictionModelMetadataRepository predictionModelMetadataRepository;
+
     private final ModelTrainingRunRepository repository;
 
-    public ModelTrainingRunServiceImpl(ModelTrainingRunRepository repository) {
+    public ModelTrainingRunServiceImpl(PredictionModelMetadataRepository predictionModelMetadataRepository, ModelTrainingRunRepository repository) {
+        this.predictionModelMetadataRepository = predictionModelMetadataRepository;
         this.repository = repository;
     }
 
@@ -40,17 +44,19 @@ public class ModelTrainingRunServiceImpl implements ModelTrainingRunService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markSuccess(Long runId, PredictionModelMetadata metadata, Integer recordsUsed, Double accuracy) {
+    @Transactional
+    public void markSuccess(Long runId, Long metadataId, Integer recordsUsed, Double accuracy) {
         ModelTrainingRun run = repository.findById(runId)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Run not found: " + runId));
+
+        PredictionModelMetadata metadata = predictionModelMetadataRepository.findById(metadataId)
+                        .orElseThrow(() -> new RuntimeException("Metadata not found: " + metadataId));
 
         run.setFinishedAt(LocalDateTime.now());
         run.setStatus(TrainingStatus.SUCCESS);
         run.setPredictionModelMetadata(metadata);
         run.setRecordsUsed(recordsUsed);
         run.setAccuracy(accuracy);
-        repository.save(run);
 
         log.info(
                 "Training run completed successfully [runId={}, ticker={}, recordsUsed={}, accuracy={}]",

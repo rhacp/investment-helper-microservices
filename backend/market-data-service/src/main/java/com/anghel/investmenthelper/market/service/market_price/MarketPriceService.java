@@ -8,7 +8,9 @@ import java.util.List;
 
 public interface MarketPriceService {
 
-    void syncMarketPrices(Stock stock);
+    void performInitialSynchronization(Stock stock);
+
+    void synchronizeLatestPrice(Stock stock);
 
     List<MarketPriceResponseDTO> getMarketPriceListByStock(Stock stock);
 

@@ -1,6 +1,7 @@
 package com.anghel.investmenthelper.market.service.stock;
 
 import com.anghel.investmenthelper.market.event.StockCreatedEvent;
+import com.anghel.investmenthelper.market.model.dto.fmp.FinancialModelingPrepProfileDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.stock.StockResponseDTO;
@@ -8,8 +9,8 @@ import com.anghel.investmenthelper.market.model.dto.stock.StockTickerResponseDTO
 import com.anghel.investmenthelper.market.model.dto.stock.SyncStockRequestDTO;
 import com.anghel.investmenthelper.market.model.entity.Stock;
 import com.anghel.investmenthelper.market.repository.StockRepository;
+import com.anghel.investmenthelper.market.service.fmp.FinancialModelingPrepClient;
 import com.anghel.investmenthelper.market.service.market_price.MarketPriceService;
-import com.anghel.investmenthelper.market.service.yahoo.YahooFinanceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ public class StockServiceImpl implements StockService {
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    private final YahooFinanceClient yahooFinanceClient;
+    private final FinancialModelingPrepClient financialModelingPrepClient;
 
     private final StockQueryService stockQueryService;
 
@@ -42,7 +43,7 @@ public class StockServiceImpl implements StockService {
     @Transactional
     @Override
     public StockResponseDTO syncStock(SyncStockRequestDTO request) {
-        yahoofinance.Stock yahooStock = yahooFinanceClient.getStock(request.getTicker());
+        FinancialModelingPrepProfileDTO profile = financialModelingPrepClient.getStockProfile(request.getTicker());
 
         Stock stock = stockRepository.findStockByTickerIgnoreCase(request.getTicker());
         boolean newStock = stock == null;
@@ -52,20 +53,21 @@ public class StockServiceImpl implements StockService {
             stock.setTicker(request.getTicker());
         }
 
-        updateStockFromYahoo(stock, yahooStock);
+        updateStockFromProfile(stock, profile);
         Stock savedStock = stockRepository.save(stock);
         log.info("Stock synchronized [id={}, ticker={}]",
                 savedStock.getId(),
                 savedStock.getTicker());
 
-        marketPriceService.syncMarketPrices(savedStock);
-
         if (newStock) {
+            marketPriceService.performInitialSynchronization(savedStock);
             applicationEventPublisher.publishEvent(new StockCreatedEvent(savedStock.getTicker()));
             log.info("Stock created event published [ticker={}]", savedStock.getTicker());
+        } else {
+            marketPriceService.synchronizeLatestPrice(savedStock);
         }
 
-        return modelMapper.map(savedStock, StockResponseDTO.class);
+        return buildStockResponse(savedStock);
     }
 
     @Override
@@ -73,7 +75,7 @@ public class StockServiceImpl implements StockService {
         Stock stock = stockQueryService.getValidStock(ticker);
         log.debug("Stock retrieved [ticker={}]", ticker);
 
-        return modelMapper.map(stock, StockResponseDTO.class);
+        return buildStockResponse(stock);
     }
 
     @Override
@@ -100,7 +102,7 @@ public class StockServiceImpl implements StockService {
 
         for (Stock stock : stockList) {
             try {
-                marketPriceService.syncMarketPrices(stock);
+                marketPriceService.synchronizeLatestPrice(stock);
                 successful++;
             } catch (Exception e) {
                 log.error("Failed to daily sync stock [ticker={}]", stock.getTicker(), e);
@@ -142,10 +144,16 @@ public class StockServiceImpl implements StockService {
                 .collect(Collectors.toMap(Function.identity(), ticker -> getMarketPriceByTicker(ticker)));
     }
 
-    private static void updateStockFromYahoo(Stock stock, yahoofinance.Stock yahooStock) {
-        stock.setTicker(yahooStock.getSymbol());
-        stock.setCompanyName(yahooStock.getName());
-        stock.setCurrency(yahooStock.getCurrency());
-        stock.setExchange(yahooStock.getStockExchange());
+    private static void updateStockFromProfile(Stock stock, FinancialModelingPrepProfileDTO profile) {
+        stock.setTicker(profile.getSymbol());
+        stock.setCompanyName(profile.getCompanyName());
+        stock.setCurrency(profile.getCurrency());
+        stock.setExchange(profile.getExchange());
+    }
+
+    private StockResponseDTO buildStockResponse(Stock savedStock) {
+        StockResponseDTO response = modelMapper.map(savedStock, StockResponseDTO.class);
+        response.setCurrentPrice(marketPriceService.getMarketPriceByStock(savedStock).getPrice());
+        return response;
     }
 }

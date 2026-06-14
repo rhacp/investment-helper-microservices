@@ -34,7 +34,7 @@ public class AuthUserController {
         return ResponseEntity.ok(authUserService.updateUserRole(id, roleDTO));
     }
 
-    @PatchMapping("/internal/auth-users/{authUserId}/disable")
+    @PostMapping("/internal/auth-users/{authUserId}/disable")
     public ResponseEntity<Void> disableAuthUser(@PathVariable Long authUserId) {
         authUserService.disableAuthUser(authUserId);
         return ResponseEntity.noContent().build();

@@ -26,3 +26,6 @@ jwt:
 
 yahoo:
   refresh-cron: ${YAHOO_REFRESH_CRON:0 0 2 * * *}
+
+financial-modeling-prep:
+  api-key: ${FMP_API_KEY:add-your-key-here}

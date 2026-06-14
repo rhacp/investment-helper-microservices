@@ -15,7 +15,7 @@ public class StockSynchronizationScheduler {
         this.stockService = stockService;
     }
 
-    @Scheduled(cron = "0 0 1 * * *", zone = "Europe/Bucharest")
+    @Scheduled(cron = "0 0 4 * * *", zone = "Europe/Bucharest")
     public void synchronizeStocks() {
         log.info("Started stock daily synchronization");
         stockService.syncAllStocks();

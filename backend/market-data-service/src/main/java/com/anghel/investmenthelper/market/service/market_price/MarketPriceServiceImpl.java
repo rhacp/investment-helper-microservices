@@ -1,72 +1,90 @@
 package com.anghel.investmenthelper.market.service.market_price;
 
+import com.anghel.investmenthelper.market.exception.FinancialModelingPrepException;
 import com.anghel.investmenthelper.market.exception.ResourceNotFoundException;
+import com.anghel.investmenthelper.market.model.dto.fmp.FinancialModelingPrepHistoricalPriceDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceInternalResponseDTO;
 import com.anghel.investmenthelper.market.model.dto.market_price.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.market.model.entity.MarketPrice;
 import com.anghel.investmenthelper.market.model.entity.Stock;
 import com.anghel.investmenthelper.market.repository.MarketPriceRepository;
-import com.anghel.investmenthelper.market.service.yahoo.YahooFinanceClient;
+import com.anghel.investmenthelper.market.service.fmp.FinancialModelingPrepClient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import yahoofinance.histquotes.HistoricalQuote;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MarketPriceServiceImpl implements MarketPriceService {
 
     private final ModelMapper modelMapper;
 
+    private final FinancialModelingPrepClient financialModelingPrepClient;
+
     private final MarketPriceRepository marketPriceRepository;
 
-    private final YahooFinanceClient yahooFinanceClient;
+    @Transactional
+    @Override
+    public void performInitialSynchronization(Stock stock) {
+        LocalDate latestPriceDate = marketPriceRepository.findLatestPriceDate(stock);
+        if (latestPriceDate != null) {
+            log.debug("Initial synchronization skipped because market prices already exist [ticker={}, latestPriceDate={}]", stock.getTicker(), latestPriceDate);
+            return;
+        }
 
-    public MarketPriceServiceImpl(ModelMapper modelMapper, MarketPriceRepository marketPriceRepository, YahooFinanceClient yahooFinanceClient) {
-        this.modelMapper = modelMapper;
-        this.marketPriceRepository = marketPriceRepository;
-        this.yahooFinanceClient = yahooFinanceClient;
+        List<FinancialModelingPrepHistoricalPriceDTO> historicalPrices = financialModelingPrepClient.getHistoricalPrices(
+                stock.getTicker(),
+                LocalDate.now().minusYears(2),
+                LocalDate.now()
+        );
+
+        List<MarketPrice> marketPrices = historicalPrices.stream()
+                .map(this::mapHistoricalPrice)
+                .peek(price -> price.setStock(stock))
+                .toList();
+
+        List<MarketPrice> savedPrices = marketPriceRepository.saveAll(marketPrices);
+        log.info(
+                "Initial market price synchronization completed [ticker={}, importedRecords={}]",
+                stock.getTicker(),
+                savedPrices.size()
+        );
     }
 
     @Transactional
     @Override
-    public void syncMarketPrices(Stock stock) {
-        LocalDate lastDate = marketPriceRepository.findLatestPriceDate(stock);
-        LocalDate startDate = lastDate == null ? LocalDate.now().minusYears(2) : lastDate.plusDays(1);
+    public void synchronizeLatestPrice(Stock stock) {
+        LocalDate latestPriceDate = marketPriceRepository.findLatestPriceDate(stock);
 
-        if (startDate.isAfter(LocalDate.now())) {
-            log.debug("No synchronization required [ticker={}]", stock.getTicker());
+        FinancialModelingPrepHistoricalPriceDTO dto = financialModelingPrepClient
+                .getLatestHistoricalPrice(stock.getTicker()
+        );
+
+        if (latestPriceDate != null && !dto.getDate().isAfter(latestPriceDate)){
+            log.debug(
+                    "Skipping latest price synchronization [ticker={}, latestDbDate={}, providerDate={}]",
+                    stock.getTicker(),
+                    latestPriceDate,
+                    dto.getDate()
+            );
             return;
         }
 
-        List<HistoricalQuote> historicalQuoteList = yahooFinanceClient.getHistory(
-                stock.getTicker(),
-                startDate,
-                LocalDate.now());
+        MarketPrice marketPrice = mapHistoricalPrice(dto);
+        marketPrice.setStock(stock);
+        marketPriceRepository.save(marketPrice);
 
-        List<MarketPrice> marketPriceList = historicalQuoteList.stream()
-                .filter(historicalQuote -> historicalQuote.getClose() != null && historicalQuote.getDate() != null)
-                .map(this::updateMarketPriceFromHistoricalQuote)
-                .toList();
-
-        marketPriceList.forEach(marketPrice -> marketPrice.setStock(stock));
-
-        Set<LocalDate> existingPriceDates = marketPriceRepository.findAllPriceDatesByStock(stock);
-        marketPriceList = marketPriceList.stream()
-                .filter(marketPrice -> !existingPriceDates.contains(marketPrice.getPriceDate()))
-                .toList();
-
-        List<MarketPrice> savedMarketPriceList = marketPriceRepository.saveAll(marketPriceList);
         log.info(
-                "Market prices synchronized [ticker={}, importedRecords={}]",
+                "Latest market price synchronized [ticker={}, date={}, closePrice={}]",
                 stock.getTicker(),
-                savedMarketPriceList.size()
+                marketPrice.getPriceDate(),
+                marketPrice.getClosePrice()
         );
     }
 
@@ -102,16 +120,19 @@ public class MarketPriceServiceImpl implements MarketPriceService {
         return modelMapper.map(marketPrice, MarketPriceResponseDTO.class);
     }
 
-    private MarketPrice updateMarketPriceFromHistoricalQuote(HistoricalQuote historicalQuote) {
+    private MarketPrice mapHistoricalPrice(FinancialModelingPrepHistoricalPriceDTO dto) {
+        if (dto.getDate() == null) {
+            throw new FinancialModelingPrepException("Historical price returned without date");
+        }
+
         MarketPrice marketPrice = new MarketPrice();
-        marketPrice.setClosePrice(historicalQuote.getClose());
-        marketPrice.setHighPrice(historicalQuote.getHigh());
-        marketPrice.setLowPrice(historicalQuote.getLow());
-        marketPrice.setOpenPrice(historicalQuote.getOpen());
-        marketPrice.setVolume(historicalQuote.getVolume());
-        marketPrice.setPriceDate(historicalQuote.getDate().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate());
+
+        marketPrice.setPriceDate(dto.getDate());
+        marketPrice.setOpenPrice(dto.getOpen());
+        marketPrice.setHighPrice(dto.getHigh());
+        marketPrice.setLowPrice(dto.getLow());
+        marketPrice.setClosePrice(dto.getClose());
+        marketPrice.setVolume(dto.getVolume());
 
         return marketPrice;
     }

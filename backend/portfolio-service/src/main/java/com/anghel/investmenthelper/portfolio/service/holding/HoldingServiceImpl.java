@@ -1,11 +1,14 @@
 package com.anghel.investmenthelper.portfolio.service.holding;
 
+import com.anghel.investmenthelper.portfolio.client.MarketDataClient;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.UpdateHoldingRequestDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.internal.SyncStockRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.entity.Holding;
 import com.anghel.investmenthelper.portfolio.model.entity.Portfolio;
 import com.anghel.investmenthelper.portfolio.repository.HoldingRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -13,24 +16,22 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class HoldingServiceImpl implements HoldingService {
 
     private final ModelMapper modelMapper;
 
     private final HoldingRepository holdingRepository;
 
-    private final HoldingQueryService holdingQueryService;
+    private final MarketDataClient marketDataClient;
 
-    public HoldingServiceImpl(ModelMapper modelMapper, HoldingRepository holdingRepository, HoldingQueryService holdingQueryService) {
-        this.modelMapper = modelMapper;
-        this.holdingRepository = holdingRepository;
-        this.holdingQueryService = holdingQueryService;
-    }
+    private final HoldingQueryService holdingQueryService;
 
     @Transactional
     @Override
     public Holding createHolding(CreateHoldingRequestDTO createHoldingRequestDTO,
                                             Portfolio portfolio) {
+        ensureStockExists(createHoldingRequestDTO.getTicker());
         Holding holding = modelMapper.map(createHoldingRequestDTO, Holding.class);
 
         holding.setPortfolio(portfolio);
@@ -76,6 +77,16 @@ public class HoldingServiceImpl implements HoldingService {
 
         if (updateHoldingRequestDTO.getPurchaseDate() != null) {
             holding.setPurchaseDate(updateHoldingRequestDTO.getPurchaseDate());
+        }
+    }
+
+    private void ensureStockExists(String ticker) {
+        try {
+            marketDataClient.getStockByTicker(ticker);
+            log.debug("Stock already exists in market-data-service [ticker={}]", ticker);
+        } catch (Exception exception) {
+            log.info("Stock not found. Starting synchronization [ticker={}]", ticker);
+            marketDataClient.syncStock(new SyncStockRequestDTO(ticker));
         }
     }
 }

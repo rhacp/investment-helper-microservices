@@ -113,6 +113,13 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
+		<!-- FEIGN OKHTTP -->
+		<dependency>
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-okhttp</artifactId>
+			<version>13.6</version>
+		</dependency>
+
     </dependencies>
 	<dependencyManagement>
 		<dependencies>

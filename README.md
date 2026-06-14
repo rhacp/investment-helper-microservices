@@ -6,6 +6,9 @@ The platform allows users to maintain portfolios of financial assets, monitor ma
 
 The project was developed using a modern microservices architecture based on Spring Boot and Spring Cloud, with a React frontend application.
 
+API Documentation:
+https://rhacp.github.io/investment-helper-microservices-swagger/
+
 ---
 
 # Features

@@ -1,0 +1,1886 @@
+openapi: 3.0.3
+info:
+  title: Investment Helper API
+  version: 1.0.0
+  description: Full API documentation for the Investment Helper microservices backend. Public endpoints are intended to be
+    called through the API Gateway. Internal endpoints are used for service-to-service communication.
+servers:
+- url: http://localhost:8080
+  description: Local API Gateway
+tags:
+- name: Auth
+  description: Authentication and authorization endpoints.
+- name: Users
+  description: User profile management.
+- name: Market Data
+  description: Stocks and OHLCV market data.
+- name: Portfolios
+  description: Portfolio and holding management.
+- name: Prediction
+  description: ML prediction endpoints.
+- name: Training
+  description: ML model training endpoints.
+- name: Analytics
+  description: Stock and portfolio analytics endpoints.
+- name: Internal
+  description: Internal service-to-service endpoints.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        dateOfBirth: &id001
+          type: string
+          format: date
+          example: '2024-05-15'
+      required:
+      - email
+      - password
+      - firstName
+      - lastName
+      - dateOfBirth
+    RegisterResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          example: ROLE_USER
+        enabled:
+          type: boolean
+          example: true
+    LoginRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+      required:
+      - email
+      - password
+    LoginResponseDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token.
+        signature:
+          type: string
+          description: JWT token field used by older Postman collection versions.
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          format: int64
+          example: 1800
+    RoleDTO:
+      type: object
+      properties:
+        role:
+          type: string
+          example: ROLE_ADMIN
+          enum:
+          - ROLE_USER
+          - ROLE_ADMIN
+      required:
+      - role
+    AuthUserResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          example: ROLE_ADMIN
+        enabled:
+          type: boolean
+    UserInputDTO:
+      type: object
+      properties:
+        authUserId:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        dateOfBirth: *id001
+      required:
+      - authUserId
+      - email
+      - firstName
+      - lastName
+      - dateOfBirth
+    UserUpdateDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.updated@example.com
+        firstName:
+          type: string
+          example: Johnny
+        lastName:
+          type: string
+          example: Updated
+        dateOfBirth: *id001
+    UserDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        authUserId:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth: *id001
+        active:
+          type: boolean
+          example: true
+    SyncStockRequestDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+      required:
+      - ticker
+    StockResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        ticker:
+          type: string
+          example: AAPL
+        name:
+          type: string
+          example: Apple Inc.
+        exchange:
+          type: string
+          example: NASDAQ
+        sector:
+          type: string
+          example: Technology
+        currency:
+          type: string
+          example: USD
+    StockTickerResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+    MarketPriceResponseDTO:
+      type: object
+      properties:
+        date: *id001
+        priceDate: *id001
+        openPrice: &id002
+          type: number
+          format: decimal
+          example: 123.45
+        highPrice: *id002
+        lowPrice: *id002
+        closePrice: *id002
+        volume:
+          type: integer
+          format: int64
+          example: 1500000
+    MarketPriceInternalResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        price: *id002
+    BatchMarketPriceRequestDTO:
+      type: object
+      properties:
+        tickers:
+          type: array
+          items:
+            type: string
+          example:
+          - AAPL
+          - MSFT
+          - TSLA
+      required:
+      - tickers
+    CreatePortfolioRequestDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Growth Portfolio
+      required:
+      - name
+    UpdatePortfolioRequestDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Dividend Portfolio
+    CreateHoldingRequestDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        quantity: *id002
+        averageBuyPrice: *id002
+        purchaseDate: *id001
+      required:
+      - ticker
+      - quantity
+      - averageBuyPrice
+    UpdateHoldingRequestDTO:
+      type: object
+      properties:
+        quantity: *id002
+        averageBuyPrice: *id002
+        purchaseDate: *id001
+    HoldingResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        ticker:
+          type: string
+          example: AAPL
+        quantity: *id002
+        averageBuyPrice: *id002
+        currentPrice: *id002
+        profitLoss: *id002
+        currentValue: *id002
+        profitPercentage: *id002
+    PortfolioResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: Growth Portfolio
+        totalValue: *id002
+        totalProfitLoss: *id002
+        holdings:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoldingResponseDTO'
+    HoldingInternalResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        quantity: *id002
+        averageBuyPrice: *id002
+    PortfolioDetailsInternalResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        userId:
+          type: integer
+          format: int64
+        authUserId:
+          type: integer
+          format: int64
+        holdings:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoldingInternalResponseDTO'
+    PredictionRequestDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+      required:
+      - ticker
+    PredictionResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        predictionLabel:
+          type: string
+          example: UP
+          enum:
+          - UP
+          - DOWN
+        confidence: *id002
+        predictionForDate: *id001
+        modelVersion:
+          type: integer
+          example: 1
+        createdAt: &id003
+          type: string
+          format: date-time
+          example: '2026-06-14T03:00:00'
+    PredictionAnalyticsResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        totalPredictions:
+          type: integer
+          example: 10
+        correctPredictions:
+          type: integer
+          example: 7
+        accuracy: *id002
+        averageConfidence: *id002
+    TrainingModelRequestDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+      required:
+      - ticker
+    TrainingModelResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        modelVersion:
+          type: integer
+          example: 1
+        accuracy: *id002
+        recordsUsed:
+          type: integer
+          example: 252
+        trainedAt: *id003
+        status:
+          type: string
+          example: SUCCESS
+    StockAnalyticsResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        currentPrice: *id002
+        totalReturn: *id002
+        averageDailyReturn: *id002
+        dailyVolatility: *id002
+        annualizedVolatility: *id002
+        sharpeRatio: *id002
+        maxDrawdown: *id002
+        bestDayReturn: *id002
+        worstDayReturn: *id002
+        dataPoints:
+          type: integer
+          example: 252
+    PortfolioHoldingAnalyticsResponseDTO:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        quantity: *id002
+        averageBuyPrice: *id002
+        currentPrice: *id002
+        currentValue: *id002
+        profitLoss: *id002
+        returnPercentage: *id002
+        weight: *id002
+    PortfolioRiskAnalyticsResponseDTO:
+      type: object
+      properties:
+        volatility: *id002
+        annualizedVolatility: *id002
+        sharpeRatio: *id002
+        maxDrawdown: *id002
+    PortfolioAnalyticsResponseDTO:
+      type: object
+      properties:
+        portfolioId:
+          type: integer
+          format: int64
+          example: 1
+        portfolioName:
+          type: string
+          example: Growth Portfolio
+        totalInvested: *id002
+        currentValue: *id002
+        totalProfitLoss: *id002
+        totalReturn: *id002
+        numberOfHoldings:
+          type: integer
+          example: 3
+        holdings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortfolioHoldingAnalyticsResponseDTO'
+        risk:
+          $ref: '#/components/schemas/PortfolioRiskAnalyticsResponseDTO'
+    ErrorDTO:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        path:
+          type: string
+          example: /api/v1/users/1
+        timestamp: *id003
+paths:
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Auth
+      summary: Register a new auth user and create the linked user profile.
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequestDTO'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login and receive a JWT access token.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestDTO'
+  /api/v1/auth/users/{id}/role:
+    patch:
+      tags:
+      - Auth
+      summary: Update an auth user's role. Requires ADMIN.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/internal/auth-users/{authUserId}/disable:
+    patch:
+      tags:
+      - Internal
+      summary: Disable an auth user from another service.
+      responses:
+        '204':
+          description: No content
+      parameters:
+      - name: authUserId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/internal/users:
+    post:
+      tags:
+      - Internal
+      summary: Create user profile from auth-service.
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInputDTO'
+  /api/v1/users/{authUserId}:
+    get:
+      tags:
+      - Users
+      summary: Get user profile by auth user id.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: authUserId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    patch:
+      tags:
+      - Users
+      summary: Update user profile by auth user id.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: authUserId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    delete:
+      tags:
+      - Users
+      summary: Deactivate user profile by auth user id.
+      responses:
+        '204':
+          description: No content
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: authUserId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/users:
+    get:
+      tags:
+      - Users
+      summary: Get all users. Requires ADMIN.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+  /api/v1/stocks/{ticker}:
+    get:
+      tags:
+      - Market Data
+      summary: Get stock metadata by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/stocks/{ticker}/history:
+    get:
+      tags:
+      - Market Data
+      summary: Get historical OHLCV prices by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MarketPriceResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/stocks/sync:
+    post:
+      tags:
+      - Market Data
+      summary: Synchronize stock metadata and historical market prices. Requires ADMIN.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncStockRequestDTO'
+      security:
+      - bearerAuth: []
+  /api/v1/internal/stocks/sync:
+    post:
+      tags:
+        - Internal
+      summary: Synchronize stock metadata and historical prices internally.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncStockRequestDTO'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponseDTO'
+  /api/v1/internal/stocks/{ticker}/price:
+    get:
+      tags:
+      - Internal
+      summary: Get latest simple price for a ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketPriceInternalResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/internal/stocks/{ticker}/history:
+    get:
+      tags:
+      - Internal
+      summary: Get internal historical OHLCV prices by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MarketPriceResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/internal/stocks:
+    get:
+      tags:
+      - Internal
+      summary: Get all known stock tickers.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockTickerResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+  /api/v1/internal/stocks/{ticker}/full-price:
+    get:
+      tags:
+      - Internal
+      summary: Get latest full OHLCV price row by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketPriceResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/internal/stocks/prices:
+    post:
+      tags:
+      - Internal
+      summary: Get latest simple prices for multiple tickers.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/MarketPriceInternalResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchMarketPriceRequestDTO'
+  /api/v1/portfolios:
+    post:
+      tags:
+      - Portfolios
+      summary: Create portfolio for authenticated user.
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePortfolioRequestDTO'
+      security:
+      - bearerAuth: []
+    get:
+      tags:
+      - Portfolios
+      summary: Get all portfolios of authenticated user.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortfolioResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+  /api/v1/portfolios/{portfolioId}:
+    get:
+      tags:
+      - Portfolios
+      summary: Get portfolio by id.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    patch:
+      tags:
+      - Portfolios
+      summary: Update portfolio by id.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePortfolioRequestDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    delete:
+      tags:
+      - Portfolios
+      summary: Delete portfolio by id.
+      responses:
+        '204':
+          description: No content
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/portfolios/{portfolioId}/holdings:
+    post:
+      tags:
+      - Portfolios
+      summary: Add holding to portfolio.
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHoldingRequestDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags:
+      - Portfolios
+      summary: Get holdings by portfolio.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HoldingResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/holdings/{holdingId}:
+    patch:
+      tags:
+      - Portfolios
+      summary: Update holding by id.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHoldingRequestDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: holdingId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    delete:
+      tags:
+      - Portfolios
+      summary: Delete holding by id.
+      responses:
+        '204':
+          description: No content
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: holdingId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/internal/portfolios/{portfolioId}:
+    get:
+      tags:
+      - Internal
+      summary: Get internal portfolio details for analytics-service.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioDetailsInternalResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /api/v1/predictions:
+    post:
+      tags:
+      - Prediction
+      summary: Generate a prediction for a ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequestDTO'
+      security:
+      - bearerAuth: []
+  /api/v1/predictions/{ticker}/latest:
+    get:
+      tags:
+      - Prediction
+      summary: Get latest stored prediction by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/predictions/{ticker}/analytics:
+    get:
+      tags:
+      - Prediction
+      summary: Get prediction performance analytics by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionAnalyticsResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/trainings/train:
+    post:
+      tags:
+      - Training
+      summary: Train a prediction model for a ticker. Requires ADMIN.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingModelResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingModelRequestDTO'
+      security:
+      - bearerAuth: []
+  /api/v1/internal/trainings/train:
+    post:
+      tags:
+        - Internal
+      summary: Trigger model training from another microservice.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingModelRequestDTO'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingModelResponseDTO'
+  /api/v1/analytics/stocks/{ticker}:
+    get:
+      tags:
+      - Analytics
+      summary: Get stock risk and performance analytics by ticker.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockAnalyticsResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/analytics/portfolios/{portfolioId}:
+    get:
+      tags:
+      - Analytics
+      summary: Get portfolio analytics by portfolio id.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioAnalyticsResponseDTO'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: portfolioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64

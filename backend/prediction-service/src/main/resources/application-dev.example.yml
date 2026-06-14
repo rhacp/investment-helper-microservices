@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/investment_helper_prediction
+    username: postgres
+    password: your_local_password
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+prediction:
+  training-years: 2
+  minimum-training-records: 200

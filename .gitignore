@@ -1,11 +1,17 @@
 # Maven
 **/target/
 
+# Java
+*.class
+
 # IntelliJ
 .idea/
 *.iml
 *.ipr
 *.iws
+
+# VS Code
+.vscode/
 
 # Spring local config
 **/src/main/resources/application-dev.yml
@@ -18,13 +24,32 @@
 # Environment files
 .env
 .env.*
-
-# Keep example env files
 !.env.example
+
+# ML Models
+models/
 
 # Logs
 *.log
 logs/
+
+# Node
+**/node_modules/
+**/.pnpm-store/
+**/.npm/
+
+# Frontend build
+**/dist/
+**/.next/
+**/.nuxt/
+**/.cache/
+**/.vite/
+**/coverage/
+
+# Frontend env
+**/.env.local
+**/.env.development.local
+**/.env.production.local
 
 # OS
 .DS_Store
@@ -48,12 +73,3 @@ Thumbs.db
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-# VS Code
-.vscode/
-
-# Node
-frontend/react-app/node_modules/
-
-# Build
-target/

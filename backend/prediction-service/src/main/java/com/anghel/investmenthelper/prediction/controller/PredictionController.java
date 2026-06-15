@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/predictions")
+@RequestMapping("/api/v1")
 public class PredictionController {
 
     private final PredictionService predictionService;
@@ -19,21 +19,20 @@ public class PredictionController {
         this.predictionService = predictionService;
     }
 
-    @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/internal/predictions")
     public ResponseEntity<PredictionResponseDTO> predict(
             @Valid @RequestBody PredictionRequestDTO request) {
-        return ResponseEntity.ok(predictionService.predict(request));
+        return ResponseEntity.ok(predictionService.generatePrediction(request.getTicker()));
     }
 
-    @GetMapping("/{ticker}/latest")
+    @GetMapping("/predictions/{ticker}/latest")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PredictionResponseDTO> getLatestPrediction(
             @PathVariable String ticker) {
         return ResponseEntity.ok(predictionService.getLatestPrediction(ticker));
     }
 
-    @GetMapping("/{ticker}/analytics")
+    @GetMapping("/predictions/{ticker}/analytics")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PredictionAnalyticsResponseDTO> getAnalytics(
             @PathVariable String ticker) {

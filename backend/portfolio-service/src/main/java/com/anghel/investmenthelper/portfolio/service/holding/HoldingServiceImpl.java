@@ -1,9 +1,11 @@
 package com.anghel.investmenthelper.portfolio.service.holding;
 
 import com.anghel.investmenthelper.portfolio.client.MarketDataClient;
+import com.anghel.investmenthelper.portfolio.client.PredictionClient;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.CreateHoldingRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.HoldingResponseDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.holding.UpdateHoldingRequestDTO;
+import com.anghel.investmenthelper.portfolio.model.dto.internal.PredictionRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.dto.internal.SyncStockRequestDTO;
 import com.anghel.investmenthelper.portfolio.model.entity.Holding;
 import com.anghel.investmenthelper.portfolio.model.entity.Portfolio;
@@ -23,6 +25,8 @@ public class HoldingServiceImpl implements HoldingService {
 
     private final HoldingRepository holdingRepository;
 
+    private final PredictionClient predictionClient;
+
     private final MarketDataClient marketDataClient;
 
     private final HoldingQueryService holdingQueryService;
@@ -41,6 +45,7 @@ public class HoldingServiceImpl implements HoldingService {
                 savedHolding.getId(),
                 portfolio.getId()
         );
+        createPrediction(savedHolding.getTicker());
 
         return savedHolding;
     }
@@ -87,6 +92,16 @@ public class HoldingServiceImpl implements HoldingService {
         } catch (Exception exception) {
             log.info("Stock not found. Starting synchronization [ticker={}]", ticker);
             marketDataClient.syncStock(new SyncStockRequestDTO(ticker));
+        }
+    }
+
+    private void createPrediction(String ticker) {
+        PredictionRequestDTO predictionRequestDTO = new PredictionRequestDTO(ticker);
+        try {
+            predictionClient.predict(predictionRequestDTO);
+            log.info("Prediction created for new holding [ticker={}]", ticker);
+        } catch (Exception exception) {
+            log.warn("Prediction creation failed for new holding [ticker={}]", ticker, exception);
         }
     }
 }

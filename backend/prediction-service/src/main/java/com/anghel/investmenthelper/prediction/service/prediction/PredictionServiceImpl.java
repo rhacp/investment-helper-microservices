@@ -4,7 +4,6 @@ import com.anghel.investmenthelper.prediction.client.MarketDataClient;
 import com.anghel.investmenthelper.prediction.exception.ResourceNotFoundException;
 import com.anghel.investmenthelper.prediction.model.dto.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.prediction.model.dto.prediction.PredictionAnalyticsResponseDTO;
-import com.anghel.investmenthelper.prediction.model.dto.prediction.PredictionRequestDTO;
 import com.anghel.investmenthelper.prediction.model.dto.prediction.PredictionResponseDTO;
 import com.anghel.investmenthelper.prediction.model.entity.PredictionModelMetadata;
 import com.anghel.investmenthelper.prediction.model.entity.PredictionResult;
@@ -46,16 +45,80 @@ public class PredictionServiceImpl implements PredictionService {
 
     private final PredictionModelMetadataRepository predictionModelMetadataRepository;
 
+    @Override
+    public PredictionResponseDTO getLatestPrediction(String ticker) {
+        PredictionResult predictionResult = predictionResultRepository.findTopByTickerOrderByCreatedAtDesc(ticker);
+
+        if (predictionResult == null) {
+            throw new ResourceNotFoundException("No prediction found for ticker " + ticker);
+        }
+
+        log.debug(
+                "Latest prediction retrieved [ticker={}, predictionId={}]",
+                ticker,
+                predictionResult.getId()
+        );
+
+        return modelMapper.map(predictionResult, PredictionResponseDTO.class);
+    }
+
+    @Override
+    public PredictionAnalyticsResponseDTO getAnalytics(String ticker) {
+        List<PredictionResult> predictionResultList = predictionResultRepository.findAllByTicker(ticker);
+
+        if (predictionResultList.isEmpty()) {
+            throw new ResourceNotFoundException("No prediction history found for ticker " + ticker);
+        }
+
+        int totalPredictions = predictionResultList.size();
+        int correctPredictions = (int) predictionResultList.stream()
+                .filter(prediction -> Boolean.TRUE.equals(prediction.getCorrect()))
+                .count();
+        double accuracy = (double) correctPredictions / totalPredictions;
+
+        double averageConfidence = predictionResultList.stream()
+                .mapToDouble(PredictionResult::getConfidence)
+                .average()
+                .orElse(0.0);
+
+        int validatedPredictions = (int) predictionResultList.stream()
+                .filter(prediction -> prediction.getCorrect() != null)
+                .count();
+
+        int pendingPredictions = totalPredictions - validatedPredictions;
+
+        PredictionAnalyticsResponseDTO response = new PredictionAnalyticsResponseDTO();
+        response.setTicker(ticker);
+        response.setTotalPredictions(totalPredictions);
+        response.setCorrectPredictions(correctPredictions);
+        response.setAccuracy(accuracy);
+        response.setAverageConfidence(averageConfidence);
+        response.setValidatedPredictions(validatedPredictions);
+        response.setPendingPredictions(pendingPredictions);
+
+        log.debug(
+                "Prediction analytics calculated [ticker={}, totalPredictions={}, accuracy={}]",
+                ticker,
+                totalPredictions,
+                accuracy
+        );
+
+        return response;
+    }
+
     @Transactional
     @Override
-    public PredictionResponseDTO predict(PredictionRequestDTO request) {
-        String ticker = request.getTicker().toUpperCase();
+    public PredictionResponseDTO generatePrediction(String ticker) {
+        ticker = ticker.toUpperCase();
 
         PredictionModelMetadata metadata = predictionModelMetadataRepository.findTopByTickerIgnoreCaseAndActiveTrueOrderByModelVersionDesc(ticker);
 
         if (metadata == null) {
             throw new ResourceNotFoundException("No active prediction model found for ticker " + ticker);
         }
+
+        PredictionResponseDTO existingPrediction = checkIfPredictionExistForTickerMetadata(ticker, metadata);
+        if (existingPrediction != null) return existingPrediction;
 
         Model<Label> model = modelStorageService.loadModel(metadata.getModelPath());
 
@@ -97,60 +160,30 @@ public class PredictionServiceImpl implements PredictionService {
         );
     }
 
-    @Override
-    public PredictionResponseDTO getLatestPrediction(String ticker) {
-        PredictionResult predictionResult = predictionResultRepository.findTopByTickerOrderByCreatedAtDesc(ticker);
-
-        if (predictionResult == null) {
-            throw new ResourceNotFoundException("No prediction found for ticker " + ticker);
-        }
-
-        log.debug(
-                "Latest prediction retrieved [ticker={}, predictionId={}]",
+    private PredictionResponseDTO checkIfPredictionExistForTickerMetadata(String ticker, PredictionModelMetadata metadata) {
+        LocalDate predictionForDate = LocalDate.now().plusDays(1);
+        PredictionResult existingPrediction = predictionResultRepository.findByTickerIgnoreCaseAndPredictionForDateAndModelVersion(
                 ticker,
-                predictionResult.getId()
-        );
+                predictionForDate,
+                metadata.getModelVersion());
 
-        return modelMapper.map(
-                predictionResult,
-                PredictionResponseDTO.class
-        );
-    }
+        if (existingPrediction != null) {
+            log.debug(
+                    "Returning existing prediction [ticker={}, modelVersion={}, predictionForDate={}]",
+                    ticker,
+                    metadata.getModelVersion(),
+                    predictionForDate
+            );
 
-    @Override
-    public PredictionAnalyticsResponseDTO getAnalytics(String ticker) {
-        List<PredictionResult> predictionResultList = predictionResultRepository.findAllByTicker(ticker);
-
-        if (predictionResultList.isEmpty()) {
-            throw new ResourceNotFoundException("No prediction history found for ticker " + ticker);
+            return new PredictionResponseDTO(
+                    existingPrediction.getTicker(),
+                    existingPrediction.getPredictionLabel(),
+                    existingPrediction.getConfidence(),
+                    existingPrediction.getModelVersion(),
+                    existingPrediction.getPredictionForDate()
+            );
         }
-
-        int totalPredictions = predictionResultList.size();
-        int correctPredictions = (int) predictionResultList.stream()
-                .filter(prediction -> Boolean.TRUE.equals(prediction.getCorrect()))
-                .count();
-        double accuracy = (double) correctPredictions / totalPredictions;
-
-        double averageConfidence = predictionResultList.stream()
-                .mapToDouble(PredictionResult::getConfidence)
-                .average()
-                .orElse(0.0);
-
-        PredictionAnalyticsResponseDTO response = new PredictionAnalyticsResponseDTO();
-        response.setTicker(ticker);
-        response.setTotalPredictions(totalPredictions);
-        response.setCorrectPredictions(correctPredictions);
-        response.setAccuracy(accuracy);
-        response.setAverageConfidence(averageConfidence);
-
-        log.debug(
-                "Prediction analytics calculated [ticker={}, totalPredictions={}, accuracy={}]",
-                ticker,
-                totalPredictions,
-                accuracy
-        );
-
-        return response;
+        return null;
     }
 
     private Example<Label> buildPredictionExample(PredictionRow row) {

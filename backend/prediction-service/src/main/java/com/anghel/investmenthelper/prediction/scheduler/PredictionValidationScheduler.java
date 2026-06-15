@@ -22,10 +22,11 @@ public class PredictionValidationScheduler {
 
     private final PredictionResultRepository predictionResultRepository;
 
-    @Scheduled(cron = "0 0 23 * * *")
+    @Scheduled(cron = "0 30 6 * * *")
     public void validatePredictions() {
         LocalDate today = LocalDate.now();
         List<PredictionResult> predictions = predictionResultRepository.findAllByPredictionForDateAndCorrectIsNull(today);
+        log.info("Starting prediction validation [predictions={}]", predictions.size());
 
         for (PredictionResult prediction : predictions) {
             MarketPriceResponseDTO currentPrice = marketDataClient.getPriceByTicker(prediction.getTicker());
@@ -37,6 +38,8 @@ public class PredictionValidationScheduler {
         }
 
         predictionResultRepository.saveAll(predictions);
+        log.info("Finished prediction validation [predictions={}]", predictions.size()
+        );
     }
 
     private PredictionLabel determineActualLabel(PredictionResult prediction, MarketPriceResponseDTO actualPrice) {

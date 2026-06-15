@@ -1601,50 +1601,6 @@ paths:
         schema:
           type: integer
           format: int64
-  /api/v1/predictions:
-    post:
-      tags:
-      - Prediction
-      summary: Generate a prediction for a ticker.
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PredictionResponseDTO'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDTO'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDTO'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDTO'
-        '404':
-          description: Resource not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDTO'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PredictionRequestDTO'
-      security:
-      - bearerAuth: []
   /api/v1/predictions/{ticker}/latest:
     get:
       tags:

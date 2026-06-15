@@ -13,4 +13,9 @@ public interface PredictionResultRepository extends JpaRepository<PredictionResu
     PredictionResult findTopByTickerOrderByCreatedAtDesc(String ticker);
 
     List<PredictionResult> findAllByTicker(String ticker);
+
+    PredictionResult findByTickerIgnoreCaseAndPredictionForDateAndModelVersion(
+            String ticker,
+            LocalDate predictionForDate,
+            Integer modelVersion);
 }

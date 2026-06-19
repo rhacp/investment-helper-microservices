@@ -698,37 +698,6 @@
       "name": "Prediction",
       "item": [
         {
-          "name": "Predict",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/predictions",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "prediction"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"ticker\": \"{{ticker}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Get Latest Prediction",
           "request": {
             "method": "GET",

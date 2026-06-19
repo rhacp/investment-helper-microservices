@@ -14,7 +14,7 @@ public interface MarketDataClient {
     @GetMapping("/api/v1/internal/stocks/{ticker}/history")
     List<MarketPriceResponseDTO> getStockHistoryByTicker(@PathVariable String ticker);
 
-    @GetMapping("/api/v1/internal/stocks/{ticker}/price")
+    @GetMapping("/api/v1/internal/stocks/{ticker}/full-price")
     MarketPriceResponseDTO getPriceByTicker(@PathVariable String ticker);
 
     @GetMapping("/api/v1/internal/stocks")

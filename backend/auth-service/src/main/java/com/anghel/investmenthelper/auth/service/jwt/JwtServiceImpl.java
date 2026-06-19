@@ -46,11 +46,7 @@ public class JwtServiceImpl implements JwtService {
                 .signWith(privateKey, Jwts.SIG.RS256)
                 .compact();
 
-        log.info(
-                "Access token generated [userId={}, role={}]",
-                authUser.getId(),
-                authUser.getRole()
-        );
+        log.info("Access token generated [userId={}, role={}]", authUser.getId(), authUser.getRole());
 
         return accessToken;
     }

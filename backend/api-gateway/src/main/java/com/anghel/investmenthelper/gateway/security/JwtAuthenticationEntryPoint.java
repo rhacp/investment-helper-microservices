@@ -36,6 +36,16 @@ public class JwtAuthenticationEntryPoint implements ServerAuthenticationEntryPoi
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
+        response.getHeaders().add(
+                "Access-Control-Allow-Origin",
+                "http://localhost:3000"
+        );
+
+        response.getHeaders().add(
+                "Access-Control-Allow-Credentials",
+                "true"
+        );
+
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(errorDTO);
 

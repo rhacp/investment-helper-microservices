@@ -17,6 +17,10 @@ public class PredictionAnalyticsResponseDTO {
 
     private Integer correctPredictions;
 
+    private Integer validatedPredictions;
+
+    private Integer pendingPredictions;
+
     private Double accuracy;
 
     private Double averageConfidence;

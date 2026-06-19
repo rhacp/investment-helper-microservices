@@ -33,6 +33,16 @@ public class JwtAccessDeniedHandler implements ServerAccessDeniedHandler {
         response.setStatusCode(HttpStatus.FORBIDDEN);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
+        response.getHeaders().add(
+                "Access-Control-Allow-Origin",
+                "http://localhost:3000"
+        );
+
+        response.getHeaders().add(
+                "Access-Control-Allow-Credentials",
+                "true"
+        );
+
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(errorDTO);
             return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));

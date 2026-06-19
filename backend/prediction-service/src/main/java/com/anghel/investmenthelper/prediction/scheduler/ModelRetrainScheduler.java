@@ -20,7 +20,7 @@ public class ModelRetrainScheduler {
 
     private final PredictionModelMetadataService predictionModelMetadataService;
 
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 5 * * *")
     public void retrainModels() {
         List<StockTickerResponseDTO> stocks = marketDataClient.getAllStocks();
         log.info("Starting scheduled model retraining [stocks={}]", stocks.size());

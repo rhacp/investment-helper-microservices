@@ -1,6 +1,6 @@
 # Investment Helper Frontend
 
-React + TypeScript frontend for the Investment Helper microservices platform.
+React + TypeScript frontend.
 
 ## Run Locally
 

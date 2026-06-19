@@ -58,7 +58,7 @@ export function ProfilePage() {
 
   return (
     <>
-      <PageHeader eyebrow="Account" title="Profile" subtitle="Review and update the user profile linked to the authenticated account." />
+      <PageHeader title="Profile" />
       {!authUserId ? (
         <ErrorMessage message="We could not load your profile. Please sign in again." />
       ) : profileQuery.isLoading ? (

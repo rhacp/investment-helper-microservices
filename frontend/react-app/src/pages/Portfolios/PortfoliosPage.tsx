@@ -68,9 +68,7 @@ export function PortfoliosPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Portfolio management"
         title="Portfolios"
-        subtitle="Create portfolios and open detailed holding views backed by the portfolio service."
         action={
           <Button
             variant="contained"

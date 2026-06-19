@@ -50,9 +50,7 @@ export function StocksPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Market Data"
         title="Market Data"
-        subtitle="Search a stock symbol and review available company details, historical prices, and market analytics."
       />
       <Card sx={{ mb: 3 }}>
         <CardContent>

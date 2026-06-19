@@ -109,9 +109,7 @@ export function AnalyticsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Analytics"
         title="Investment Analytics"
-        subtitle="Review stock risk, return metrics, and portfolio-level allocation from public API endpoints."
       />
 
       <Card sx={{ mb: 3 }}>

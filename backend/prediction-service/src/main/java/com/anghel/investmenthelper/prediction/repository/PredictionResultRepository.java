@@ -2,6 +2,7 @@ package com.anghel.investmenthelper.prediction.repository;
 
 import com.anghel.investmenthelper.prediction.model.entity.PredictionResult;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,4 +19,13 @@ public interface PredictionResultRepository extends JpaRepository<PredictionResu
             String ticker,
             LocalDate predictionForDate,
             Integer modelVersion);
+
+    @Query("""
+       SELECT MAX(p.predictionForDate)
+       FROM PredictionResult p
+       WHERE p.correct IS NOT NULL
+       """)
+    LocalDate findLatestValidatedPredictionDate();
+
+    List<PredictionResult> findAllByPredictionForDateAndCorrectIsNotNull(LocalDate predictionForDate);
 }

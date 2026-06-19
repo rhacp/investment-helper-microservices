@@ -5,6 +5,7 @@ import com.anghel.investmenthelper.prediction.exception.ResourceNotFoundExceptio
 import com.anghel.investmenthelper.prediction.model.dto.MarketPriceResponseDTO;
 import com.anghel.investmenthelper.prediction.model.dto.prediction.PredictionAnalyticsResponseDTO;
 import com.anghel.investmenthelper.prediction.model.dto.prediction.PredictionResponseDTO;
+import com.anghel.investmenthelper.prediction.model.dto.prediction.ValidatedPredictionResponseDTO;
 import com.anghel.investmenthelper.prediction.model.entity.PredictionModelMetadata;
 import com.anghel.investmenthelper.prediction.model.entity.PredictionResult;
 import com.anghel.investmenthelper.prediction.model.internal.PredictionRow;
@@ -158,6 +159,29 @@ public class PredictionServiceImpl implements PredictionService {
                 metadata.getModelVersion(),
                 predictionForDate
         );
+    }
+
+    @Override
+    public List<ValidatedPredictionResponseDTO> getLatestDayPredictions() {
+        LocalDate latestValidatedDate = predictionResultRepository.findLatestValidatedPredictionDate();
+        log.info("Fetching latest validated predictions [date={}]", latestValidatedDate);
+
+        if (latestValidatedDate == null) {
+            log.warn("No validated predictions found");
+            return List.of();
+        }
+
+        List<PredictionResult> predictions = predictionResultRepository
+                .findAllByPredictionForDateAndCorrectIsNotNull(latestValidatedDate);
+        log.info(
+                "Found validated predictions [date={}, predictions={}]",
+                latestValidatedDate,
+                predictions.size()
+        );
+
+        return predictions.stream()
+                .map(predictionResult -> modelMapper.map(predictionResult, ValidatedPredictionResponseDTO.class))
+                .toList();
     }
 
     private PredictionResponseDTO checkIfPredictionExistForTickerMetadata(String ticker, PredictionModelMetadata metadata) {

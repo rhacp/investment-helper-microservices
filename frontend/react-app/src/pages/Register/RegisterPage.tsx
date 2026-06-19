@@ -68,7 +68,6 @@ export function RegisterPage() {
         <Stack spacing={3}>
           <Box>
             <Typography variant="h4">Create account</Typography>
-            <Typography color="text.secondary">Start tracking portfolios, risk, and model predictions</Typography>
           </Box>
           <Card>
             <CardContent sx={{ p: { xs: 3, sm: 4 } }}>

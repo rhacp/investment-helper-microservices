@@ -10,4 +10,8 @@ export const predictionApi = {
     const { data } = await apiClient.get<PredictionAnalyticsResponseDTO>(`/api/v1/predictions/${ticker}/analytics`);
     return data;
   },
+  latestValidatedDay: async () => {
+    const { data } = await apiClient.get<PredictionResponseDTO[]>('/api/v1/predictions/history/latestDay');
+    return data;
+  },
 };

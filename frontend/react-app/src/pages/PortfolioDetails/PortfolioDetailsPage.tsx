@@ -113,9 +113,7 @@ export function PortfolioDetailsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Portfolio details"
         title={portfolio.name}
-        subtitle="Manage holdings and review allocation, current value, profit/loss, and risk metrics."
         action={
           <Stack direction="row" spacing={1}>
             <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/portfolios')}>

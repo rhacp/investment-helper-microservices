@@ -34,9 +34,7 @@ export function DashboardPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Overview"
         title="Portfolio Overview"
-        subtitle="A consolidated view of portfolio value, allocation, and performance."
         action={
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/portfolios')}>
             Manage portfolios

@@ -60,9 +60,6 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
         <Typography variant="h6" sx={{ letterSpacing: 0, fontWeight: 800 }}>
           Investment Helper
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Investment Dashboard
-        </Typography>
       </Box>
       <Divider />
       <List sx={{ px: 1.5, py: 2 }}>

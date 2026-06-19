@@ -70,7 +70,6 @@ export function LoginPage() {
               </Box>
               <Box>
                 <Typography variant="h4">Investment Helper</Typography>
-                <Typography color="text.secondary">Sign in to manage portfolios and market data</Typography>
               </Box>
             </Stack>
           </Box>

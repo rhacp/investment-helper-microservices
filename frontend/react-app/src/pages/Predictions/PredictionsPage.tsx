@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { portfolioApi } from '../../api/portfolioApi';
 import { predictionApi } from '../../api/predictionApi';
@@ -103,6 +103,13 @@ export function PredictionsPage() {
     })),
   });
 
+  const latestValidatedDayQuery = useQuery({
+    queryKey: ['predictionHistoryLatestDay'],
+    queryFn: predictionApi.latestValidatedDay,
+    retry: false,
+    staleTime: 60_000,
+  });
+
   const analyticsByTicker = useMemo(() => {
     const entries = analyticsQueries
       .map((query) => query.data)
@@ -166,10 +173,30 @@ export function PredictionsPage() {
   const confidenceTrend = [...rows]
     .sort((a, b) => dayjs(a.predictionForDate).valueOf() - dayjs(b.predictionForDate).valueOf())
     .map((row) => ({ label: `${row.ticker} ${dayjs(row.predictionForDate).format('MM-DD')}`, confidence: toPercent(row.confidence) }));
-  const accuracyTrend = Array.from(analyticsByTicker.values()).map((item) => ({
-    ticker: item.ticker,
-    accuracy: toPercent(item.accuracy),
-  }));
+  const latestValidatedPredictions = useMemo(
+    () => ((latestValidatedDayQuery.data ?? []) as PredictionResponseDTO[]),
+    [latestValidatedDayQuery.data],
+  );
+  const accuracyTrend = useMemo(() => (
+    latestValidatedPredictions.map((prediction) => ({
+      ticker: prediction.ticker,
+      accuracy: prediction.correct === true ? 100 : 0,
+    }))
+  ), [latestValidatedPredictions]);
+  const modelAccuracy = useMemo(() => {
+    const totalValidated = latestValidatedPredictions.length;
+    const correctPredictions = latestValidatedPredictions.filter((prediction) => prediction.correct === true).length;
+    const percentage = totalValidated ? (correctPredictions / totalValidated) * 100 : 0;
+
+    return { correctPredictions, totalValidated, percentage };
+  }, [latestValidatedPredictions]);
+
+  useEffect(() => {
+    if (latestValidatedDayQuery.data) {
+      console.log('Latest validated predictions payload:', latestValidatedDayQuery.data);
+      console.log('Calculated model accuracy percentage:', modelAccuracy.percentage);
+    }
+  }, [latestValidatedDayQuery.data, modelAccuracy.percentage]);
 
   const updateSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -186,9 +213,7 @@ export function PredictionsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Predictions"
         title="Prediction Dashboard"
-        subtitle="Review latest stored predictions for tickers already present in your portfolios."
       />
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
@@ -319,16 +344,41 @@ export function PredictionsPage() {
           </Card>
 
           <Stack direction={{ xs: 'column', xl: 'row' }} spacing={3}>
-            <ChartCard title="Accuracy Trend">
-              <Box sx={{ height: 260 }}>
-                <ResponsiveContainer>
-                  <LineChart data={accuracyTrend}>
-                    <XAxis dataKey="ticker" stroke="#9CA3AF" />
-                    <YAxis stroke="#9CA3AF" domain={[0, 100]} />
-                    <Tooltip contentStyle={{ background: '#151028', border: '1px solid rgba(196, 181, 253, 0.22)' }} formatter={(value) => formatPercent(Number(value))} />
-                    <Line type="monotone" dataKey="accuracy" stroke="#22C55E" strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+            <ChartCard title="Validation Results">
+              {latestValidatedDayQuery.isLoading ? (
+                <LoadingSpinner label="Loading accuracy trend" />
+              ) : !accuracyTrend.length ? (
+                <EmptyState title="No validated predictions available" message="Accuracy will appear after predictions are validated by the backend." />
+              ) : (
+                <Box sx={{ height: 260 }}>
+                  <ResponsiveContainer>
+                    <LineChart data={accuracyTrend}>
+                      <XAxis dataKey="ticker" stroke="#9CA3AF" />
+                      <YAxis stroke="#9CA3AF" domain={[0, 100]} />
+                      <Tooltip contentStyle={{ background: '#151028', border: '1px solid rgba(196, 181, 253, 0.22)' }} formatter={(value) => formatPercent(Number(value))} />
+                      <Line type="monotone" dataKey="accuracy" stroke="#22C55E" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
+            </ChartCard>
+            <ChartCard title="Model Accuracy">
+              <Box sx={{ height: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                {latestValidatedDayQuery.isLoading ? (
+                  <LoadingSpinner label="Loading model accuracy" />
+                ) : !modelAccuracy.totalValidated ? (
+                  <EmptyState title="No validated predictions available" message="Model accuracy will appear after predictions are validated by the backend." />
+                ) : (
+                  <Stack spacing={2}>
+                    <Typography variant="h3" fontWeight={900}>
+                      {formatPercent(modelAccuracy.percentage)}
+                    </Typography>
+                    <LinearProgress variant="determinate" value={Math.min(modelAccuracy.percentage, 100)} />
+                    <Typography color="text.secondary">
+                      {modelAccuracy.correctPredictions} correct out of {modelAccuracy.totalValidated} validated predictions
+                    </Typography>
+                  </Stack>
+                )}
               </Box>
             </ChartCard>
             <ChartCard title="Confidence Trend">

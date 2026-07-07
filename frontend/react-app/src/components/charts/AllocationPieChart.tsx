@@ -13,7 +13,7 @@ export function AllocationPieChart({ holdings }: { holdings: AllocationItem[] })
   const data = holdings.map((item) => ({
     name: item.ticker,
     value: Number(item.currentValue ?? 0),
-    weight: 'weight' in item ? item.weight : total ? (Number(item.currentValue ?? 0) / total) * 100 : 0,
+    weight: 'weight' in item ? Number(item.weight ?? 0) * 100 : total ? (Number(item.currentValue ?? 0) / total) * 100 : 0,
   }));
 
   if (!data.length) {

@@ -1,0 +1,287 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: investment-helper-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      AUTH_DB_NAME: ${AUTH_DB_NAME}
+      USER_DB_NAME: ${USER_DB_NAME}
+      PORTFOLIO_DB_NAME: ${PORTFOLIO_DB_NAME}
+      MARKET_DATA_DB_NAME: ${MARKET_DATA_DB_NAME}
+      PREDICTION_DB_NAME: ${PREDICTION_DB_NAME}
+      ANALYTICS_DB_NAME: ${ANALYTICS_DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - investment-helper-network
+
+  discovery-server:
+    build:
+      context: ./backend/discovery-server
+    container_name: discovery-server
+    expose:
+      - "8761"
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8761/ | grep -q Eureka"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - investment-helper-network
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+    container_name: auth-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${AUTH_DB_NAME}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_SERVER_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: auth-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-classpath:keys/private.pem}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD}
+    expose:
+      - "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8082/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  user-service:
+    build:
+      context: ./backend/user-service
+    container_name: user-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${USER_DB_NAME}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: user-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_ISSUER: ${JWT_ISSUER:-investment-helper-auth-service}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+    expose:
+      - "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --output /dev/null http://localhost:8081/"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  portfolio-service:
+    build:
+      context: ./backend/portfolio-service
+    container_name: portfolio-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${PORTFOLIO_DB_NAME}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: portfolio-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_ISSUER: ${JWT_ISSUER:-investment-helper-auth-service}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+    expose:
+      - "8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8083/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  market-data-service:
+    build:
+      context: ./backend/market-data-service
+    container_name: market-data-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${MARKET_DATA_DB_NAME}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: market-data-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_ISSUER: ${JWT_ISSUER:-investment-helper-auth-service}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+      FMP_API_KEY: ${FMP_API_KEY}
+      YAHOO_REFRESH_CRON: ${YAHOO_REFRESH_CRON:-0 0 2 * * *}
+    expose:
+      - "8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8084/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  prediction-service:
+    build:
+      context: ./backend/prediction-service
+    container_name: prediction-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${PREDICTION_DB_NAME}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: prediction-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_ISSUER: ${JWT_ISSUER:-investment-helper-auth-service}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+      MODEL_STORAGE_PATH: /app/models
+      PREDICTION_MINIMUM_RECORDS: ${PREDICTION_MINIMUM_RECORDS:-200}
+      TRAINING_RATIO: ${TRAINING_RATIO:-0.8}
+    expose:
+      - "8085"
+    volumes:
+      - prediction-models:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8085/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  analytics-service:
+    build:
+      context: ./backend/analytics-service
+    container_name: analytics-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${ANALYTICS_DB_NAME}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: analytics-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_ISSUER: ${JWT_ISSUER:-investment-helper-auth-service}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+      RISK_FREE_RATE: ${RISK_FREE_RATE:-0.05}
+    expose:
+      - "8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8086/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+    container_name: api-gateway
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      JWT_ISSUER: ${JWT_ISSUER:-investment-helper-auth-service}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-classpath:keys/public.pem}
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      portfolio-service:
+        condition: service_healthy
+      market-data-service:
+        condition: service_healthy
+      prediction-service:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - investment-helper-network
+
+  react-app:
+    build:
+      context: ./frontend/react-app
+      args:
+        REACT_APP_API_BASE_URL: ${FRONTEND_API_BASE_URL:-http://localhost:8080}
+    container_name: react-app
+    ports:
+      - "3000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - investment-helper-network
+
+volumes:
+  postgres-data:
+  prediction-models:
+
+networks:
+  investment-helper-network:
+    driver: bridge

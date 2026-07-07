@@ -14,7 +14,7 @@ import { ErrorMessage } from '../../components/common/ErrorMessage';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { MetricCard } from '../../components/common/MetricCard';
 import { PageHeader } from '../../components/common/PageHeader';
-import { formatCurrency, formatNumber, formatPercent, normalizeTicker } from '../../utils/formatters';
+import { formatCurrency, formatNumber, formatRatioPercent, normalizeTicker } from '../../utils/formatters';
 
 const schema = z.object({ ticker: z.string().min(1, 'Ticker is required') });
 type StockSearchValues = z.infer<typeof schema>;
@@ -107,11 +107,11 @@ export function StocksPage() {
                   Stock analytics
                 </Typography>
                 <Stack spacing={1.5}>
-                  <Typography>Total return: {formatPercent(analytics?.totalReturn)}</Typography>
-                  <Typography>Average daily return: {formatPercent(analytics?.averageDailyReturn)}</Typography>
+                  <Typography>Total return: {formatRatioPercent(analytics?.totalReturn)}</Typography>
+                  <Typography>Average daily return: {formatRatioPercent(analytics?.averageDailyReturn)}</Typography>
                   <Typography>Annualized volatility: {formatNumber(analytics?.annualizedVolatility)}</Typography>
                   <Typography>Sharpe ratio: {formatNumber(analytics?.sharpeRatio)}</Typography>
-                  <Typography>Max drawdown: {formatPercent(analytics?.maxDrawdown)}</Typography>
+                  <Typography>Max drawdown: {formatRatioPercent(analytics?.maxDrawdown)}</Typography>
                 </Stack>
               </CardContent>
             </Card>

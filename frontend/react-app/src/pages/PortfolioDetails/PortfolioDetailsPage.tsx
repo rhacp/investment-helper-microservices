@@ -20,7 +20,7 @@ import { HoldingsTable } from '../../components/portfolio/HoldingsTable';
 import { analyticsService } from '../../services/analyticsService';
 import { portfolioService } from '../../services/portfolioService';
 import type { HoldingResponseDTO, PortfolioAnalyticsResponseDTO, PortfolioResponseDTO } from '../../types/api';
-import { formatCurrency, formatPercent, getSignedColor } from '../../utils/formatters';
+import { formatCurrency, formatRatioPercent, getSignedColor } from '../../utils/formatters';
 
 export function PortfolioDetailsPage() {
   const { portfolioId } = useParams();
@@ -98,7 +98,7 @@ export function PortfolioDetailsPage() {
   const holdings: HoldingResponseDTO[] = portfolio.holdings ?? [];
   const analytics = analyticsQuery.data as PortfolioAnalyticsResponseDTO | undefined;
   const totalInvested = analytics?.totalInvested ?? holdings.reduce((sum: number, holding: HoldingResponseDTO) => sum + holding.quantity * holding.averageBuyPrice, 0);
-  const totalReturn = analytics?.totalReturn ?? (totalInvested ? (portfolio.totalProfitLoss / totalInvested) * 100 : 0);
+  const totalReturn = analytics?.totalReturn ?? (totalInvested ? portfolio.totalProfitLoss / totalInvested : 0);
   const isSaving = createHoldingMutation.isPending || updateHoldingMutation.isPending;
 
   const submitHolding = (values: HoldingFormValues) => {
@@ -140,7 +140,7 @@ export function PortfolioDetailsPage() {
         <MetricCard label="Current value" value={formatCurrency(portfolio.totalValue)} />
         <MetricCard label="Invested" value={formatCurrency(totalInvested)} />
         <MetricCard label="Profit / loss" value={formatCurrency(portfolio.totalProfitLoss)} color={getSignedColor(portfolio.totalProfitLoss)} />
-        <MetricCard label="Return" value={formatPercent(totalReturn)} color={getSignedColor(totalReturn)} />
+        <MetricCard label="Return" value={formatRatioPercent(totalReturn)} color={getSignedColor(totalReturn)} />
       </Stack>
       {!holdings.length ? (
         <EmptyState

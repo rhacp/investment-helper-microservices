@@ -38,7 +38,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { MetricCard } from '../../components/common/MetricCard';
 import { PageHeader } from '../../components/common/PageHeader';
 import type { MarketPriceResponseDTO, PortfolioHoldingAnalyticsResponseDTO, PortfolioResponseDTO } from '../../types/api';
-import { formatCurrency, formatNumber, formatPercent, getSignedColor, normalizeTicker } from '../../utils/formatters';
+import { formatCurrency, formatNumber, formatPercent, formatRatioPercent, getSignedColor, normalizeTicker } from '../../utils/formatters';
 
 const schema = z.object({ ticker: z.string().min(1, 'Ticker is required') });
 type AnalyticsSearchValues = z.infer<typeof schema>;
@@ -165,16 +165,16 @@ export function AnalyticsPage() {
           ) : stockAnalytics ? (
             <>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                <MetricCard label="Total Return" value={formatPercent(stockAnalytics.totalReturn)} color={getSignedColor(stockAnalytics.totalReturn)} />
-                <MetricCard label="Average Daily Return" value={formatPercent(stockAnalytics.averageDailyReturn)} color={getSignedColor(stockAnalytics.averageDailyReturn)} />
+                <MetricCard label="Total Return" value={formatRatioPercent(stockAnalytics.totalReturn)} color={getSignedColor(stockAnalytics.totalReturn)} />
+                <MetricCard label="Average Daily Return" value={formatRatioPercent(stockAnalytics.averageDailyReturn)} color={getSignedColor(stockAnalytics.averageDailyReturn)} />
                 <MetricCard label="Volatility" value={formatNumber(stockAnalytics.dailyVolatility)} />
                 <MetricCard label="Annualized Volatility" value={formatNumber(stockAnalytics.annualizedVolatility)} />
               </Stack>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                 <MetricCard label="Sharpe Ratio" value={formatNumber(stockAnalytics.sharpeRatio)} />
-                <MetricCard label="Max Drawdown" value={formatPercent(stockAnalytics.maxDrawdown)} color={getSignedColor(stockAnalytics.maxDrawdown)} />
-                <MetricCard label="Best Day Return" value={formatPercent(stockAnalytics.bestDayReturn)} color="success.main" />
-                <MetricCard label="Worst Day Return" value={formatPercent(stockAnalytics.worstDayReturn)} color="error.main" />
+                <MetricCard label="Max Drawdown" value={formatRatioPercent(stockAnalytics.maxDrawdown)} color={getSignedColor(stockAnalytics.maxDrawdown)} />
+                <MetricCard label="Best Day Return" value={formatRatioPercent(stockAnalytics.bestDayReturn)} color="success.main" />
+                <MetricCard label="Worst Day Return" value={formatRatioPercent(stockAnalytics.worstDayReturn)} color="error.main" />
               </Stack>
               <Stack direction={{ xs: 'column', xl: 'row' }} spacing={3}>
                 <ChartCard title="Historical Price Chart">
@@ -205,7 +205,7 @@ export function AnalyticsPage() {
                         <CartesianGrid stroke="rgba(148, 163, 184, 0.14)" vertical={false} />
                         <XAxis dataKey="name" stroke="#9CA3AF" />
                         <YAxis stroke="#9CA3AF" />
-                        <Tooltip contentStyle={{ background: '#151028', border: '1px solid rgba(196, 181, 253, 0.22)' }} formatter={(value) => formatPercent(Number(value))} />
+                        <Tooltip contentStyle={{ background: '#151028', border: '1px solid rgba(196, 181, 253, 0.22)' }} formatter={(value) => formatRatioPercent(Number(value))} />
                         <Bar dataKey="value" fill="#22C55E" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -264,7 +264,7 @@ export function AnalyticsPage() {
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                 <MetricCard label="Current Portfolio Value" value={formatCurrency(portfolioAnalytics.currentValue)} />
                 <MetricCard label="Total Profit/Loss" value={formatCurrency(portfolioAnalytics.totalProfitLoss)} color={getSignedColor(portfolioAnalytics.totalProfitLoss)} />
-                <MetricCard label="Total Return" value={formatPercent(portfolioAnalytics.totalReturn)} color={getSignedColor(portfolioAnalytics.totalReturn)} />
+                <MetricCard label="Total Return" value={formatRatioPercent(portfolioAnalytics.totalReturn)} color={getSignedColor(portfolioAnalytics.totalReturn)} />
                 <MetricCard label="Number of Holdings" value={portfolioAnalytics.numberOfHoldings} />
               </Stack>
               <Stack direction={{ xs: 'column', xl: 'row' }} spacing={3}>
@@ -311,9 +311,9 @@ export function AnalyticsPage() {
                               {formatCurrency(holding.profitLoss)}
                             </TableCell>
                             <TableCell align="right" sx={{ color: getSignedColor(holding.returnPercentage), fontWeight: 800 }}>
-                              {formatPercent(holding.returnPercentage)}
+                              {formatRatioPercent(holding.returnPercentage)}
                             </TableCell>
-                            <TableCell align="right">{formatPercent(holding.weight)}</TableCell>
+                            <TableCell align="right">{formatRatioPercent(holding.weight)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

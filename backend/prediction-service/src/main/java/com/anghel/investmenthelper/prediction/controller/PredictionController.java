@@ -47,4 +47,11 @@ public class PredictionController {
     public ResponseEntity<List<ValidatedPredictionResponseDTO>> getLatestPredictionHistory() {
         return ResponseEntity.ok(predictionService.getLatestDayPredictions());
     }
+
+    @GetMapping("/predictions/history")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<ValidatedPredictionResponseDTO>> getPredictionHistory(
+            @RequestParam String ticker) {
+        return ResponseEntity.ok(predictionService.getFilteredPredictions(ticker));
+    }
 }

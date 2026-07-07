@@ -25,6 +25,10 @@ export function formatPercent(value?: number | null) {
   return `${numberFormatter.format(Number(value ?? 0))}%`;
 }
 
+export function formatRatioPercent(value?: number | null) {
+  return `${numberFormatter.format(Number(value ?? 0) * 100)}%`;
+}
+
 export function getSignedColor(value?: number | null) {
   const numeric = Number(value ?? 0);
   if (numeric > 0) return 'success.main';

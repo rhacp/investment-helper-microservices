@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import type { HoldingResponseDTO } from '../../types/api';
-import { formatCurrency, formatNumber, formatPercent, getSignedColor } from '../../utils/formatters';
+import { formatCurrency, formatNumber, formatRatioPercent, getSignedColor } from '../../utils/formatters';
 
 interface HoldingsTableProps {
   holdings: HoldingResponseDTO[];
@@ -50,7 +50,7 @@ export function HoldingsTable({ holdings, onEdit, onDelete }: HoldingsTableProps
                 {formatCurrency(holding.profitLoss)}
               </TableCell>
               <TableCell align="right" sx={{ color: getSignedColor(holding.profitPercentage), fontWeight: 800 }}>
-                {formatPercent(holding.profitPercentage)}
+                {formatRatioPercent(holding.profitPercentage)}
               </TableCell>
               <TableCell align="right">
                 <Tooltip title="Edit holding">

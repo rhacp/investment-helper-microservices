@@ -15,4 +15,6 @@ public interface PredictionService {
     PredictionResponseDTO generatePrediction(String ticker);
 
     List<ValidatedPredictionResponseDTO> getLatestDayPredictions();
+
+    List<ValidatedPredictionResponseDTO> getFilteredPredictions(String ticker);
 }

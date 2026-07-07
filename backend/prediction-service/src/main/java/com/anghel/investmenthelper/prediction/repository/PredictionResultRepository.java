@@ -28,4 +28,8 @@ public interface PredictionResultRepository extends JpaRepository<PredictionResu
     LocalDate findLatestValidatedPredictionDate();
 
     List<PredictionResult> findAllByPredictionForDateAndCorrectIsNotNull(LocalDate predictionForDate);
+
+    List<PredictionResult> findAllByOrderByPredictionForDateDesc();
+
+    List<PredictionResult> findAllByTickerIgnoreCaseOrderByPredictionForDateDesc(String ticker);
 }

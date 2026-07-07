@@ -184,6 +184,29 @@ public class PredictionServiceImpl implements PredictionService {
                 .toList();
     }
 
+    @Override
+    public List<ValidatedPredictionResponseDTO> getFilteredPredictions(String ticker) {
+        List<PredictionResult> predictionResultList;
+
+        if (ticker == null || ticker.isBlank()) {
+            predictionResultList = predictionResultRepository.findAllByOrderByPredictionForDateDesc();
+            log.info("Fetching all prediction history");
+        } else {
+            predictionResultList = predictionResultRepository.findAllByTickerIgnoreCaseOrderByPredictionForDateDesc(ticker);
+            log.info("Fetching prediction history [ticker={}]", ticker);
+        }
+
+        if (predictionResultList.isEmpty()) {
+            throw new ResourceNotFoundException("No prediction history found for ticker " + ticker);
+        }
+
+        log.info("Fetching all validated predictions [ticker={}]", ticker);
+
+        return predictionResultList.stream()
+                .map(predictionResult -> modelMapper.map(predictionResult, ValidatedPredictionResponseDTO.class))
+                .toList();
+    }
+
     private PredictionResponseDTO checkIfPredictionExistForTickerMetadata(String ticker, PredictionModelMetadata metadata) {
         LocalDate predictionForDate = LocalDate.now().plusDays(1);
         PredictionResult existingPrediction = predictionResultRepository.findByTickerIgnoreCaseAndPredictionForDateAndModelVersion(
